@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Propietarios de PropiedadesWeb</h6>
+        </div>
+        
+        <!-- Barra de búsqueda y botón Crear -->
+        <div class="card-body">
+            <div class="d-flex justify-content-start mb-3">
+                <input type="text" id="searchInput" class="form-control w-25 mr-2" placeholder="Buscar por Representante o RUT">
+                <a href="{% url 'propietarios:registrar_propietario' %}" class="btn btn-success">Crear</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Razón Social</th>
+                            <th>Representante</th>
+                            <th>RUT</th>
+                            <th>Correo</th>
+                            <th>Número de Contacto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in propietarios %}
+                        <tr>
+                            <td>{{ p.razon }}</td>
+                            <td>{{ p.representante }}</td>
+                            <td>{{ p.rut }}</td>
+                            <td>{{ p.correo }}</td>
+                            <td>{{ p.numero_contacto }}</td>
+                            <td>
+                                <a href="{% url 'propietarios:editar_propietario' p.id %}">
+                                    <button class="btn btn-primary btn-sm">Editar</button>
+                                </a>
+                                <a href="{% url 'propietarios:eliminar_propietario' p.id %}">
+                                    <button class="btn btn-danger btn-sm">Eliminar</button>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay propietarios registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para búsqueda en la tabla -->
+<script>
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#dataTable tbody tr");
+        
+        rows.forEach(row => {
+            let representante = row.cells[1].textContent.toLowerCase();
+            let rut = row.cells[2].textContent.toLowerCase();
+            
+            if (representante.includes(filter) || rut.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block content %}
+{% load humanize %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <div class="card-body">
+            <h2 class="text-primary mb-4">Listado de Publicaciones</h2>
+            
+            <!-- Filtros -->
+            <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                <input type="text" id="filtroComuna" class="form-control flex-grow-1" placeholder="Filtrar: Comuna">
+                <input type="text" id="filtroCodigo" class="form-control flex-grow-1" placeholder="Filtrar: Código">
+                <select name="tipo_publicacion" id="filtroTipoPublicacion" class="form-control flex-grow-1" aria-label="Tipo Publicación">
+                    <option value="" selected>Tipo: Todos</option>
+                    <option value="Venta">Venta</option>
+                    <option value="Arriendo">Arriendo</option>
+                </select>
+                <select name="tipo_propiedad" id="filtroTipoPropiedad" class="form-control flex-grow-1" aria-label="Tipo Propiedad">
+                    <option value="" selected>Tipo de propiedad</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Departamento">Departamento</option>
+                    <option value="Oficina">Oficina</option>
+                    <option value="Local Industrial">Local Industrial</option>
+                    <option value="Bodega">Bodega</option>
+                    <option value="Local Comercial">Local Comercial</option>
+                    <option value="Terreno">Terreno</option>
+                    <option value="Parcela">Parcela</option>
+                </select>
+                <a href="{% url 'operaciones:crear_publicacion' %}" class="btn btn-success flex-grow-1">Crear</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>TIPO</th>
+                            <th>TITULO</th>
+                            <th>CODIGO</th>
+                            <th>FOTO</th>
+                            <th>PROPIETARIO</th>
+                            <th>COMUNA</th>
+                            <th>VALOR REFERENCIAL</th>
+                            <th>FECHA DE CREACIÓN</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for publicacion in publicaciones %}
+                        <tr data-tipo-propiedad="{{ publicacion.id_propiedad.tipo_propiedad }}">
+                            <td>{{ publicacion.tipo_publicacion }}</td>
+                            <td>{{ publicacion.id_propiedad.titulo }}</td>
+                            <td>{{ publicacion.id_propiedad.codigo_propiedad }}</td>
+                            <td>
+                                {% if publicacion.id_propiedad.imagenes.all %}
+                                    <img src="{{ publicacion.id_propiedad.imagenes.first.imagen.url }}" 
+                                         class="img-thumbnail preview-image" width="50"
+                                         data-bs-toggle="modal" data-bs-target="#imageModal"
+                                         onclick="setModalImage(this)">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/50" 
+                                         class="img-thumbnail preview-image" width="50">
+                                {% endif %}
+                            </td>
+                            <td>{{ publicacion.id_propiedad.id_propietario.representante }}</td>
+                            <td>{{ publicacion.id_propiedad.comuna }}</td>
+                            <td>${{ publicacion.valor|intcomma }}</td>
+                            <td>{{ publicacion.fecha_creacion }}</td>
+                            <td>           
+                                <div class="d-flex justify-content-between mt-2">
+                                    <a href="{% url 'operaciones:editar_publicacion' publicacion.id %}" class="btn btn-warning flex-fill mx-1">Editar</a>
+                                    <button class="btn destacar-btn flex-fill mx-1 {% if publicacion.destacada %}btn-info{% else %}btn-secondary{% endif %}" 
+                                            data-id="{{ publicacion.id }}">
+                                        {% if publicacion.destacada %} Destacada {% else %} Normal {% endif %}
+                                    </button>
+                                    <button class="btn estado-btn flex-fill mx-1 {% if publicacion.estado %}btn-success{% else %}btn-danger{% endif %}" 
+                                            data-id="{{ publicacion.id }}">
+                                        {% if publicacion.estado %} Activa {% else %} Inactiva {% endif %}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No hay publicaciones registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para la imagen -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Vista Previa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="/placeholder.svg" class="img-fluid" alt="Vista previa">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos Personalizados -->
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .btn-group .btn {
+        border-radius: 5px;
+    }
+    .img-thumbnail {
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
+
+<!-- Scripts -->
+<script>
+    // Mostrar imagen en el modal al hacer clic
+    function setModalImage(img) {
+        document.getElementById("modalImage").src = img.src;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Obtener elementos de filtro
+        const filtroTipoPublicacion = document.getElementById("filtroTipoPublicacion");
+        const filtroTipoPropiedad = document.getElementById("filtroTipoPropiedad");
+        const filtroComuna = document.getElementById("filtroComuna");
+        const filtroCodigo = document.getElementById("filtroCodigo");
+        
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            const valorFiltroTipoPublicacion = filtroTipoPublicacion.value; // "Venta", "Arriendo" o ""
+            const valorFiltroTipoPropiedad = filtroTipoPropiedad.value;   // Tipo de propiedad o ""
+            const valorFiltroComuna = filtroComuna.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+            const valorFiltroCodigo = filtroCodigo.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+            
+            const filas = document.querySelectorAll("tbody tr");
+            
+            filas.forEach(fila => {
+                // Si es la fila de "No hay publicaciones", ignorarla
+                if (fila.cells.length <= 1) return;
+                
+                const valorTipoPublicacion = fila.querySelector("td:nth-child(1)").textContent.trim(); // Columna "TIPO"
+                const valorTipoPropiedad = fila.getAttribute('data-tipo-propiedad') || ""; // Obtener el tipo desde el atributo data-tipo-propiedad
+                const valorComuna = fila.querySelector("td:nth-child(6)").textContent.trim().toLowerCase(); // Columna "COMUNA"
+                const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase(); // Columna "CODIGO"
+                
+                // Mostrar filas que cumplan con todos los filtros
+                const cumpleFiltroTipoPublicacion = valorFiltroTipoPublicacion === "" || valorTipoPublicacion === valorFiltroTipoPublicacion;
+                const cumpleFiltroTipoPropiedad = valorFiltroTipoPropiedad === "" || valorTipoPropiedad === valorFiltroTipoPropiedad;
+                const cumpleFiltroComuna = valorFiltroComuna === "" || valorComuna.includes(valorFiltroComuna);
+                const cumpleFiltroCodigo = valorFiltroCodigo === "" || valorCodigo.includes(valorFiltroCodigo);
+                
+                if (cumpleFiltroTipoPublicacion && cumpleFiltroTipoPropiedad && cumpleFiltroComuna && cumpleFiltroCodigo) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+        }
+        
+        // Agregar event listeners a todos los filtros
+        filtroTipoPublicacion.addEventListener("change", aplicarFiltros);
+        filtroTipoPropiedad.addEventListener("change", aplicarFiltros);
+        filtroComuna.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+        filtroCodigo.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+        
+        // Botón de cambio de estado Activa/Inactiva
+        document.querySelectorAll(".estado-btn").forEach(button => {
+            button.addEventListener("click", function() {
+                let publicacionId = this.getAttribute("data-id");
+                let button = this;
+
+                fetch(`/cambiar-estado/${publicacionId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.estado) {
+                            button.classList.remove("btn-danger");
+                            button.classList.add("btn-success");
+                            button.textContent = "Activa";
+                        } else {
+                            button.classList.remove("btn-success");
+                            button.classList.add("btn-danger");
+                            button.textContent = "Inactiva";
+                        }
+                    }
+                });
+            });
+        });
+
+        // Botón de destacar publicación
+        document.querySelectorAll(".destacar-btn").forEach(button => {
+            button.addEventListener("click", function() {
+                let publicacionId = this.getAttribute("data-id");
+                let button = this;
+
+                fetch(`/destacar-publicacion/${publicacionId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.destacada) {
+                            button.classList.remove("btn-secondary");
+                            button.classList.add("btn-info");
+                            button.textContent = "Destacada";
+                        } else {
+                            button.classList.remove("btn-info");
+                            button.classList.add("btn-secondary");
+                            button.textContent = "Normal";
+                        }
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+{% endblock %}

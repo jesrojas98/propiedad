@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10 col-md-9">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-5 text-center">
+                        <h1 class="h4 text-gray-900 mb-4">Eliminar Propietario</h1>
+                        <h2 class="text-danger">¿Está seguro que desea eliminar este propietario?</h2>
+                        
+                        <div class="table-responsive mt-4">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Razón Social</th>
+                                        <th>Representante</th>
+                                        <th>RUT</th>
+                                        <th>Correo</th>
+                                        <th>Número de Contacto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ propietario.razon }}</td>
+                                        <td>{{ propietario.representante }}</td>
+                                        <td>{{ propietario.rut }}</td>
+                                        <td>{{ propietario.correo }}</td>
+                                        <td>{{ propietario.numero_contacto }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <form method="POST" class="mt-4">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2 col-6 mx-auto">
+                                <button type="submit" class="btn btn-danger btn-user btn-block">Confirmar Eliminación</button>
+                                <a href="{% url 'propietarios:lista_propietarios' %}" class="btn btn-secondary btn-user btn-block">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

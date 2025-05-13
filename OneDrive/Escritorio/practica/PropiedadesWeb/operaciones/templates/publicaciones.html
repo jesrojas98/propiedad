@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}">
+</head>
+
+<!-- Barra de búsqueda principal - Sección Hero -->
+<div class="search-hero">
+    <div class="container py-5">
+        <h2 class="text-center text-white mb-4">Hola, busca aquí tu próximo hogar</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <form action="{% url 'operaciones:publicaciones_filtradas' %}" method="GET">
+                    <div class="search-container">
+                        <div class="row g-0">
+                            <div class="col-md-3">
+                                <select name="tipo_publicacion" class="form-select h-100 border-0" aria-label="Tipo de operación">
+                                    <option value="" selected>Todos</option>
+                                    <option value="Venta">Comprar</option>
+                                    <option value="Arriendo">Arrendar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="tipo_propiedad" class="form-select h-100 border-0" aria-label="Tipo de propiedad">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="Departamento">Departamento</option>
+                                    <option value="Casa">Casas</option>
+                                    <option value="Oficina">Oficina</option>
+                                    <option value="Local Industrial">Local Industrial</option>
+                                    <option value="Bodega">Bodega</option>
+                                    <option value="Local Comercial">Local Comercial</option>
+                                    <option value="Terreno">Terreno</option>
+                                    <option value="Parcela">Parcela</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" name="ubicacion" class="form-control h-100 border-0" placeholder="Barrio, Comuna o ciudad">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-danger w-100">Buscar</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3" id="id_destacadas">
+    <h1 class="h3 mb-3 text-gray-800 font-weight-bold text-center">Destacadas</h1>
+
+    <!-- Sección de Destacadas -->
+    <div class="row" id="lista-destacadas">
+        {% if publicaciones_destacadas %}
+            {% for publicacion in publicaciones_destacadas %}
+            <div class="col-lg-3 col-md-3 col-sm-4 mb-4 d-flex align-items-stretch">
+                <div class="card shadow-sm w-100">
+                    <img src="{{ publicacion.imagen_url }}" alt="{{ publicacion.titulo }}" class="img-fluid card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body p-2">
+                        <h6 class="card-title font-weight-bold text-truncate">{{publicacion.tipo_publicacion }}: {{ publicacion.titulo }}</h6>
+                        <span class="card-text text-muted small text-truncate">{{ publicacion.id_propiedad.calle }}, {{ publicacion.id_propiedad.comuna }}</>
+                        <div class="flex items-center text-sm sm:text-xs">
+                            <!-- Ícono de likes -->
+                            {% if publicacion.id_propiedad.tipo_propiedad == "Casa" or publicacion.id_propiedad.tipo_propiedad == "Departamento" or publicacion.id_propiedad.tipo_propiedad == "Oficina"  %}
+                            <svg class="w-1 h-1 mr-1 text-gray-600 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="max-width: 12px; max-height: 12px;">
+                                <path d="M0 16L3 5V1a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4l3 11v5a1 1 0 0 1-1 1v2h-1v-2H2v2H1v-2a1 1 0 0 1-1-1v-5zM19 5h1V1H4v4h1V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h2V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1zm0 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V6h-2v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6H3.76L1.04 16h21.92L20.24 6H19zM1 17v4h22v-4H1zM6 4v4h4V4H6zm8 0v4h4V4h-4z"></path>
+                            </svg>
+                            <span class="text-gray-500 mr-2">{{ publicacion.id_propiedad.dormitorios }}</span>
+
+                            <!-- Ícono de comentarios -->
+                            <svg class="w-1 h-1 mr-1 text-gray-600 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"  style="max-width: 12px; max-height: 12px;">
+                                <path fill-rule="evenodd" d="M17.03 21H7.97a4 4 0 0 1-1.3-.22l-1.22 2.44-.9-.44 1.22-2.44a4 4 0 0 1-1.38-1.55L.5 11h7.56a4 4 0 0 1 1.78.42l2.32 1.16a4 4 0 0 0 1.78.42h9.56l-2.9 5.79a4 4 0 0 1-1.37 1.55l1.22 2.44-.9.44-1.22-2.44a4 4 0 0 1-1.3.22zM21 11h2.5a.5.5 0 1 1 0 1h-9.06a4.5 4.5 0 0 1-2-.48l-2.32-1.15A3.5 3.5 0 0 0 8.56 10H.5a.5.5 0 0 1 0-1h8.06c.7 0 1.38.16 2 .48l2.32 1.15a3.5 3.5 0 0 0 1.56.37H20V2a1 1 0 0 0-1.74-.67c.64.97.53 2.29-.32 3.14l-.35.36-3.54-3.54.35-.35a2.5 2.5 0 0 1 3.15-.32A2 2 0 0 1 21 2v9zm-5.48-9.65l2 2a1.5 1.5 0 0 0-2-2zm-10.23 17A3 3 0 0 0 7.97 20h9.06a3 3 0 0 0 2.68-1.66L21.88 14h-7.94a5 5 0 0 1-2.23-.53L9.4 12.32A3 3 0 0 0 8.06 12H2.12l3.17 6.34z"></path>
+                            </svg>
+                            <span class="text-gray-500">{{ publicacion.id_propiedad.banios }}</span>
+                            <span class="mx-2">|</span>
+                            <!-- Tamaño de la propiedad -->
+                            <span class="text-gray-500">Construidos: {{ publicacion.id_propiedad.superficie_construida }} m²</span>
+
+                            <span class="mx-2">|</span>
+                            {% endif %}
+                            <!-- Terreno -->
+                            <span class="text-gray-500">Terreno: {{ publicacion.id_propiedad.superficie_terreno }} m²</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="text-primary font-weight-bold h5">${{ publicacion.valor|intcomma }} {{publicacion.tipo_valor}}</span>
+                            <a href="{% url 'operaciones:detalle_publicacion' publicacion.id %}" class="btn w-50 btn-primary">Mas información</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-muted">No hay publicaciones destacadas.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Estilos para la barra de búsqueda */
+    
+    .search-hero {
+        background-color: #d37013; /* Color púrpura oscuro como en la imagen */
+        padding: 40px 0;
+        position: relative;
+        background-image: url('/static/img/city-silhouette.png'); /* Opcional: imagen de fondo */
+        background-size: cover;
+        background-position: bottom;
+        margin-bottom: 30px;
+    }
+    
+    .search-container {
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-container .form-select,
+    .search-container .form-control {
+        font-size: 1.1rem; /* Aumenta el tamaño del título */
+        height: 50px;
+        border-radius: 0;
+        padding-left: 15px;
+        border-right: 1px solid #eee;
+    }
+    
+    .btn-danger {
+        height: 50px;
+        color: #fff !important;
+        font-weight: bold !important;
+    }
+    /* Estilos para el carrusel a pantalla completa */
+    #carouselOpciones {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    .carousel-item {
+        height: 80vh; /* Altura del 80% de la ventana visible */
+    }
+    
+    .carousel-item img {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Estilo para centrar contenido del carrusel */
+    .carousel-caption {
+        top: 50%;
+        transform: translateY(-50%);
+        bottom: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        border-radius: 10px;
+        width: 60%;
+        margin: 0 auto;
+        display: block !important; /* Asegura que sea visible en dispositivos móviles */
+    }
+    
+    /* Contenedor principal sin margen superior */
+    .container.mt-3 {
+        margin-top: 0 !important;
+    }
+
+    /* Animaciones suaves */
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* Eliminar doble scroll */
+    body, html {
+        overflow-x: hidden;
+    }
+    
+    #wrapper {
+        overflow-x: hidden;
+    }
+</style>
+
+{% endblock %}

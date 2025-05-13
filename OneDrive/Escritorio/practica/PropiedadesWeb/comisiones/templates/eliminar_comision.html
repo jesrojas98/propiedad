@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10 col-md-9">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-5 text-center">
+                        <h1 class="h4 text-gray-900 mb-4">Eliminar Comisión</h1>
+                        <h2 class="text-danger">¿Está seguro que desea eliminar esta comisión?</h2>
+                        
+                        <div class="table-responsive mt-4">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Propiedad</th>
+                                        <th>Documento</th>
+                                        <th>Corredor</th>
+                                        <th>Estado Vale Vista</th>
+                                        <th>Valor</th>
+                                        <th>Fecha de Creación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ comision.id_propiedad.titulo }}</td>
+                                        <td>{{ comision.id_documento.descripcion }}</td>
+                                        <td>{{ comision.id_corredor.nombre }}</td>
+                                        <td>{{ comision.estado_vale_vista }}</td>
+                                        <td>${{ comision.valor_vale_vista|intcomma }}</td>
+                                        <td>{{ comision.fecha_creacion|date:"d-m-Y" }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <form method="POST" class="mt-4">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2 col-6 mx-auto">
+                                <button type="submit" class="btn btn-danger btn-user btn-block">Confirmar Eliminación</button>
+                                <a href="{% url 'comisiones:listado_comisiones' %}" class="btn btn-secondary btn-user btn-block">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% load static %}
+{% load humanize %}
+<div class="container mt-4">
+    <div class="card shadow-lg p-1">
+        <div class="card-body">
+            <h2 class="text-primary mb-4">Listado de Operaciones de Venta</h2>
+
+            <!-- Filtros -->
+            <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                <input type="text" id="filtroComuna" class="form-control flex-grow-1" placeholder="Filtrar: Comuna">
+                <input type="text" id="filtroCodigo" class="form-control flex-grow-1" placeholder="Filtrar: Código">
+                <select name="tipo_propiedad" id="filtroTipoPropiedad" class="form-control flex-grow-1" aria-label="Tipo Propiedad">
+                    <option value="" selected>Tipo de propiedad</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Departamento">Departamento</option>
+                    <option value="Oficina">Oficina</option>
+                    <option value="Local Industrial">Local Industrial</option>
+                    <option value="Bodega">Bodega</option>
+                    <option value="Local Comercial">Local Comercial</option>
+                    <option value="Terreno">Terreno</option>
+                    <option value="Parcela">Parcela</option>
+                </select>
+                <a href="{% url 'propiedad:mostrar_propiedad' %}" class="btn btn-success flex-grow-1">Nueva</a>
+            </div>
+
+            <div class="table">
+                <table class="table table-bordered text-center">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>PORCENTAJE</th>
+                            <th>PROPIEDAD</th>
+                            <th>CODIGO</th>
+                            <th>ESTUDIO</th>
+                            <th>AGENDAMIENTO</th>
+                            <th>OFERTA</th>
+                            <th>PROMESA</th>
+                            <th>ESCRITURA</th>
+                            <th>INSCRIPCIÓN</th>
+                            <th>ENTREGA</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for operacion in operaciones %}
+                        <tr data-tipo-propiedad="{{ operacion.id_propiedad.tipo_propiedad }}" data-comuna="{{ operacion.id_propiedad.comuna }}">
+                            <td>{{operacion.progreso}}%</td>
+                            <td>
+                                <a href="#" class="propiedad-click" 
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#modalPropiedad" 
+                                   data-titulo="{{ operacion.id_propiedad.titulo }}"
+                                   data-comuna="{{ operacion.id_propiedad.comuna }}"
+                                   data-region="{{ operacion.id_propiedad.region }}"
+                                   data-valor="{{ operacion.valor_operacion|intcomma }}"
+                                   data-comision="{{ operacion.comision_operacion|intcomma }}"
+                                   data-progreso="{{ operacion.progreso }}"
+                                   data-fecha="{{ operacion.fecha_creacion_operacion }}"
+                                   data-codigo_propiedad="{{ operacion.id_propiedad.codigo_propiedad }}"
+                                   data-id="{{ operacion.id_propiedad.id }}">
+                                    {{ operacion.id_propiedad.titulo|truncatechars:12 }}
+                                </a>
+                            </td>
+                            <td>{{ operacion.id_propiedad.codigo_propiedad }}</td>
+                            
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="operacion_id" value="{{ operacion.id }}">
+
+                                <td>
+                                    <select name="estado_antecedentes" class="form-control">
+                                        {% for choice in ESTADO_ANTECEDENTES_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_antecedentes == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select name="estado_agendamiento" class="form-control">
+                                        {% for choice in ESTADO_AGENDAMIENTO_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_agendamiento == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select name="estado_cierre_negocio" class="form-control">
+                                        {% for choice in ESTADO_NEGOCIO_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_cierre_negocio == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select name="estado_promesa" class="form-control">
+                                        {% for choice in ESTADO_PROMESA_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_promesa == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select name="estado_escritura" class="form-control">
+                                        {% for choice in ESTADO_ESCRITURA_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_escritura == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select name="estado_inscripcion" class="form-control">
+                                        {% for choice in ESTADO_INSCRIPCION_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_inscripcion == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select name="estado_entrega" class="form-control">
+                                        {% for choice in ESTADO_ENTREGA_CHOICES %}
+                                            <option value="{{ choice.0 }}" {% if operacion.estado_entrega == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                                        <a href="{% url 'operaciones:eliminar_operacion' operacion.id %}" class="btn btn-danger btn-sm">
+                                            Eliminar
+                                        </a>
+                                    </div>
+                                </td>
+                            </form>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="12" class="text-center">No hay operaciones de venta registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalPropiedad" tabindex="-1" aria-labelledby="modalPropiedadLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalPropiedadLabel">Detalles de la operación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Título:</strong> <span id="modalTitulo"></span></p>
+                <p><strong>Codigo propiedad:</strong> <span id="modalCodigoPropiedad"></span></p>
+                <p><strong>Comuna:</strong> <span id="modalComuna"></span></p>
+                <p><strong>Región:</strong> <span id="modalRegion"></span></p>
+                <p><strong>Valor:</strong> $<span id="modalValor"></span></p>
+                <p><strong>Comisión:</strong> $<span id="modalComision"></span></p>
+                <p><strong>Progreso:</strong> <span id="modalProgreso"></span>%</p>
+                <p><strong>Fecha:</strong> <span id="modalFecha"></span></p>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                            id="modalProgressBar" 
+                            style="width: 0%;" 
+                            aria-valuenow="0" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-grid gap-2 col-12 mx-auto mt-4">
+                        <a id="modalIrPropiedad" class="btn btn-primary btn-user btn-block" href="#">Ir a la propiedad</a>
+                        <a id="modalAgregarDocumento" class="btn btn-info btn-user btn-block" href="#">Agregar documento</a>
+                    </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+
+    .propiedad-hover {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .propiedad-hover:hover {
+        background-color: #f8f9fa;
+    }
+
+    .btn-group .btn {
+        border-radius: 5px;
+    }
+
+    .estado {
+        font-size: 14px;
+        padding: 5px;
+        text-align: center;
+    }
+    
+    /* Estilos para los filtros responsivos */
+    @media (max-width: 576px) {
+        .d-flex.flex-column.flex-sm-row.gap-3 > * {
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Configuración del modal
+        document.querySelectorAll(".propiedad-click").forEach(propiedad => {
+            propiedad.addEventListener("click", function() {
+                document.getElementById("modalTitulo").textContent = this.getAttribute("data-titulo");
+                document.getElementById("modalCodigoPropiedad").textContent = this.getAttribute("data-codigo_propiedad");
+                document.getElementById("modalComuna").textContent = this.getAttribute("data-comuna");
+                document.getElementById("modalRegion").textContent = this.getAttribute("data-region");
+                document.getElementById("modalValor").textContent = this.getAttribute("data-valor");
+                document.getElementById("modalComision").textContent = this.getAttribute("data-comision");
+                document.getElementById("modalFecha").textContent = this.getAttribute("data-fecha");
+                
+                // Obtener y actualizar el progreso en el modal
+                let progreso = this.getAttribute("data-progreso");
+                document.getElementById("modalProgreso").textContent = progreso;
+                document.getElementById("modalProgressBar").style.width = progreso + "%";
+                // Actualizar el enlace del botón "Ir a la propiedad"
+                let propiedadId = this.getAttribute("data-id");
+                let propiedadUrl = `/propiedad/descripcion/${propiedadId}/`;  // Ajusta la URL según tu proyecto
+                document.getElementById("modalIrPropiedad").href = propiedadUrl;
+                let propiedadUrlDocumentos = `/documentos/mostrar_documentos/${propiedadId}/`;  // Ajusta la URL según tu proyecto
+                document.getElementById("modalAgregarDocumento").href = propiedadUrlDocumentos;
+            });
+        });
+        
+        // Obtener elementos de filtro
+        const filtroTipoPropiedad = document.getElementById("filtroTipoPropiedad");
+        const filtroComuna = document.getElementById("filtroComuna");
+        const filtroCodigo = document.getElementById("filtroCodigo");
+        
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            const valorFiltroTipoPropiedad = filtroTipoPropiedad.value;   // Tipo de propiedad o ""
+            const valorFiltroComuna = filtroComuna.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+            const valorFiltroCodigo = filtroCodigo.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+            
+            const filas = document.querySelectorAll("tbody tr");
+            
+            filas.forEach(fila => {
+                // Si es la fila de "No hay operaciones", ignorarla
+                if (fila.cells.length <= 1) return;
+                
+                const valorTipoPropiedad = fila.getAttribute('data-tipo-propiedad') || ""; // Obtener el tipo desde el atributo data-tipo-propiedad
+                const valorComuna = fila.getAttribute('data-comuna') || ""; // Obtener la comuna desde el atributo data-comuna
+                const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase(); // Columna "CODIGO"
+                
+                // Mostrar filas que cumplan con todos los filtros
+                const cumpleFiltroTipoPropiedad = valorFiltroTipoPropiedad === "" || valorTipoPropiedad === valorFiltroTipoPropiedad;
+                const cumpleFiltroComuna = valorFiltroComuna === "" || valorComuna.toLowerCase().includes(valorFiltroComuna);
+                const cumpleFiltroCodigo = valorFiltroCodigo === "" || valorCodigo.includes(valorFiltroCodigo);
+                
+                if (cumpleFiltroTipoPropiedad && cumpleFiltroComuna && cumpleFiltroCodigo) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+        }
+        
+        // Agregar event listeners a todos los filtros
+        filtroTipoPropiedad.addEventListener("change", aplicarFiltros);
+        filtroComuna.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+        filtroCodigo.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+    });
+</script>
+
+{% endblock %}
