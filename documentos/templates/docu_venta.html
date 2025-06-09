@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<style>
+    .descripcion-textarea {
+        height: 150px !important;
+        resize: none;
+    }
+    .section-header {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        color: white;
+        padding: 10px;
+        border-radius: 5px 5px 0 0;
+        font-weight: bold;
+    }
+    .card {
+        border: none;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="text-center mt-4">
+                    <h1 class="h3 text-gray-900">Registro de Documentos</h1>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">Datos del Documento</div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Tipo de Documento*</label>
+                                    <select name="tipo_documento" id="tipo_documento" class="custom-select">
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="VALE VISTA">VALE VISTA</option>
+                                        <option value="FICHA DE PROPIEDAD">FICHA DE PROPIEDAD</option>
+                                        <option value="CARTA DE OFERTA">CARTA DE OFERTA</option>
+                                        <option value="PROMESA DE COMPRA">PROMESA DE COMPRA</option>
+                                        <option value="ESCRITURA">ESCRITURA</option>
+                                        <option value="INSCRIPCIÓN">INSCRIPCIÓN</option>
+                                        <option value="ENTREGA">ENTREGA</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Descripción*</label>
+                                    {{ form.descripcion|add_class:"form-control" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de archivo -->
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">Subir Documento</div>
+                        <div class="card-body p-4">
+                            <div class="form-group">
+                                <label for="{{ form.pdf_documento.id_for_label }}">Documento en formato PDF:</label>
+                                <input type="file" class="form-control-file" name="pdf_documento" id="{{ form.pdf_documento.id_for_label }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 col-12 mx-auto mt-4">
+                        <button class="btn btn-primary btn-user btn-block" type="submit">Guardar Documento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+{% endblock %}

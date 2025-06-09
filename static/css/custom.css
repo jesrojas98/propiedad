@@ -1,0 +1,112 @@
+/* Asegurar que la altura total de la página sea completa */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Mantiene la estructura con sidebar en su lugar */
+#wrapper {
+    display: flex;
+    flex-direction: row; /* Sidebar y contenido en la misma fila */
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Contenedor principal */
+#content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Contenido principal */
+#content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Evita que el contenido se baje demasiado */
+    width: 100%;
+}
+
+/* Ajuste del container para reducir márgenes laterales */
+.container {
+    flex-grow: 1;
+    width: 100%; /* Ocupa todo el ancho disponible */
+    height: 70%;
+    max-width: 98vw !important; /* Reduce márgenes laterales sin afectar responsividad */
+    padding-left: 5% !important;
+    padding-right: 5% !important;
+}
+
+/* Tarjetas con altura uniforme */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Ajusta el contenido de las tarjetas para ocupar el espacio disponible */
+.card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Hace que el precio y el botón siempre queden abajo en las tarjetas */
+.card-body .mt-auto {
+    margin-top: auto;
+}
+
+/* Asegurar que el footer esté pegado abajo */
+.sticky-footer {
+    width: 100%;
+    background-color: var(--orange);
+    color: var(--white);
+    position: relative; /* Cambiado de absolute a relative */
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2%; /* Empuja el footer hacia abajo */
+}
+
+/*______________________________________________________*/
+/* Cambia el color del sidebar para que coincida con la barra de navegación */
+.sidebar {
+    background-color: #343a40 !important; /* Ajusta este color según el de la barra superior */
+}
+
+/* Asegura que los textos y los íconos sean blancos */
+.sidebar .nav-item .nav-link, 
+.sidebar .nav-item .nav-link i, 
+.sidebar-brand-text {
+    color: white !important;
+}
+
+/* Cambia el color de los enlaces al pasar el mouse */
+.sidebar .nav-item .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Un ligero cambio al pasar el cursor */
+}
+
+/* Estilos para la versión colapsada del sidebar en pantallas pequeñas */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px !important; /* Reduce el ancho del sidebar */
+        overflow: hidden;
+    }
+
+    .sidebar .nav-item .nav-link span {
+        display: none; /* Oculta el texto, dejando solo los íconos */
+    }
+
+    .sidebar .nav-item {
+        text-align: center; /* Centra los íconos */
+    }
+
+    .sidebar .sidebar-brand {
+        display: none; /* Oculta el logo del sidebar */
+    }
+}

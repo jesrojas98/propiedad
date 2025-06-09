@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<body class="bg-gradient-primary">
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Editar Publicación</h1>
+                                    </div>
+                                    <form class="user" method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        
+                                        {% if messages %}
+                                            {% for message in messages %}
+                                                <p style="color: {% if message.tags == 'error' %}red{% else %}green{% endif %};" class="message">
+                                                    {{ message }}
+                                                </p>
+                                            {% endfor %}
+                                        {% endif %}
+
+                                        <div class="form-group">
+                                            <label for="{{ form.id_propiedad.id_for_label }}">Propiedad:</label>
+                                            <select name="id_propiedad" id="{{ form.id_propiedad.id_for_label }}" class="custom-select">
+                                                <option value="">-------</option>
+                                                {% for propiedad in form.fields.id_propiedad.queryset %}
+                                                    <option value="{{ propiedad.id }}" {% if publicacion.id_propiedad.id == propiedad.id %}selected{% endif %}>
+                                                        {{ propiedad.titulo }} - {{ propiedad.calle }} {{ propiedad.numero_calle }}, {{ propiedad.comuna }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.descripcion.id_for_label }}">Descripción (Recuerda que edita la descripcion de la propiedad)</label>
+                                            {{ form.descripcion|add_class:"form-control" }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.valor.id_for_label }}">Valor</label>
+                                            {{ form.valor|add_class:"form-control form-control-user" }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.tipo_publicacion.id_for_label }}">Tipo de Publicación</label>
+                                            {{ form.tipo_publicacion|add_class:"form-control custom-select" }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.tipo_valor.id_for_label }}">Tipo de Valor</label>
+                                            {{ form.tipo_valor|add_class:"form-control custom-select" }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.tipo_negocio.id_for_label }}">Tipo de Negocio</label>
+                                            {{ form.tipo_negocio|add_class:"form-control custom-select" }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.fecha_expiracion.id_for_label }}">Fecha de Expiración</label>
+                                            {{ form.fecha_expiracion|add_class:"form-control form-control-user" }}
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="{{ form.comision_estimada.id_for_label }}">Comisión Estimada</label>
+                                            {{ form.comision_estimada|add_class:"form-control form-control-user" }}
+                                        </div>
+
+                                        <div class="form-group form-check">
+                                            {{ form.destacada|add_class:"form-check-input" }}
+                                            <label class="form-check-label" for="{{ form.destacada.id_for_label }}">¿Destacada?</label>
+                                        </div>
+
+                                        <div class="form-group form-check">
+                                            {{ form.estado|add_class:"form-check-input" }}
+                                            <label class="form-check-label" for="{{ form.estado.id_for_label }}">¿Publicación Activa?</label>
+                                        </div>
+
+                                        <div class="d-grid gap-2 col-8 mx-auto">
+                                            <button class="btn btn-primary btn-user btn-block" type="submit">Guardar Cambios</button>
+                                        </div>
+                                        <br>
+                                        <div class="text-center">
+                                            <a class="small" href="{% url 'operaciones:inicio' %}">Volver al Inicio</a>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+{% endblock %}

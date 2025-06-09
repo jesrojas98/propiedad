@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}">
+</head>
+    <!-- Carrusel de imágenes con opciones -->
+<div id="carouselOpciones" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="{% static 'img/carrusel1.jpg' %}" class="d-block w-100" alt="Buscar Propiedades" onload="this.style.opacity='1'">
+            <div class="carousel-caption">
+                <h3>¿Buscas una propiedad?</h3>
+                <p>Explora nuestras opciones y encuentra tu nuevo hogar.</p>
+                <a href="{% url 'operaciones:publicaciones' %}" class="btn btn-primary btn-lg">Buscar propiedades</a>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img src="{% static 'img/carrusel2.jpg' %}" class="d-block w-100" alt="Gestionamos tu propiedad" onload="this.style.opacity='1'">
+            <div class="carousel-caption">
+                <h3>¿Tienes una propiedad?</h3>
+                <p>Déjanos ayudarte a gestionar su venta o arriendo.</p>
+                <a href="{% url 'contacto_corredor:contactar_corredor' %}" class="btn btn-primary btn-lg">Gestionar Propiedad</a>
+            </div>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselOpciones" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselOpciones" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!--End Carrusel de imágenes con opciones -->
+
+<!-- Sección de Servicios de Corredores de Propiedades -->
+<section class="servicios-corredores py-5">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2 class="display-4 fw-bold mb-3">Nuestros Corredores de Propiedades</h2>
+                <p class="lead text-muted">Expertos inmobiliarios a tu servicio para encontrar o vender tu propiedad ideal</p>
+                <hr class="my-4 mx-auto" style="width: 50px; height: 3px; background-color: #0d6efd;">
+            </div>
+        </div>
+
+        <!-- Qué hacemos -->
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6 order-lg-2">
+                <img src="{% static 'img/carrusel3.jpg' %}" alt="Corredor de propiedades trabajando" class="img-fluid rounded shadow-lg" onerror="this.src='/placeholder.svg?height=400&width=600'">
+            </div>
+            <div class="col-lg-6 order-lg-1">
+                <h3 class="h2 mb-4">¿Qué hacen nuestros corredores?</h3>
+                <p class="mb-4">Los corredores de propiedades son profesionales especializados en el mercado inmobiliario que actúan como intermediarios entre compradores y vendedores, o entre propietarios y arrendatarios.</p>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle text-primary fs-4 me-3"></i>
+                    </div>
+                    <div>
+                        <h5>Asesoría Profesional</h5>
+                        <p>Brindamos orientación experta en todos los aspectos de la transacción inmobiliaria.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-search text-primary fs-4 me-3"></i>
+                    </div>
+                    <div>
+                        <h5>Búsqueda Personalizada</h5>
+                        <p>Encontramos propiedades que se ajusten exactamente a tus necesidades y presupuesto.</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-file-contract text-primary fs-4 me-3"></i>
+                    </div>
+                    <div>
+                        <h5>Gestión Documental</h5>
+                        <p>Nos encargamos de toda la documentación legal necesaria para una transacción segura.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proceso de trabajo -->
+        <div class="row mb-5">
+            <div class="col-12 text-center mb-4">
+                <h3 class="h2">Nuestro Proceso de Trabajo</h3>
+                <p class="text-muted">Metodología profesional para garantizar resultados óptimos</p>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">1</span>
+                        </div>
+                        <h5 class="card-title">Evaluación Inicial</h5>
+                        <p class="card-text">Analizamos tus necesidades y objetivos para establecer un plan de acción personalizado.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">2</span>
+                        </div>
+                        <h5 class="card-title">Búsqueda o Promoción</h5>
+                        <p class="card-text">Buscamos propiedades que cumplan tus requisitos o promocionamos tu propiedad en los canales adecuados.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">3</span>
+                        </div>
+                        <h5 class="card-title">Negociación</h5>
+                        <p class="card-text">Representamos tus intereses en la negociación para obtener las mejores condiciones posibles.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                            <span class="h3 mb-0">4</span>
+                        </div>
+                        <h5 class="card-title">Cierre y Seguimiento</h5>
+                        <p class="card-text">Gestionamos el proceso de cierre y brindamos seguimiento posterior a la transacción.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Estilos para el carrusel a pantalla completa */
+#carouselOpciones {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.carousel-item {
+    height: 80vh; /* Altura del 80% de la ventana visible */
+}
+
+.carousel-item img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Inicialmente invisibles */
+}
+
+/* Estilo para centrar contenido del carrusel */
+.carousel-caption {
+    top: 50%;
+    transform: translateY(-50%);
+    bottom: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    width: 60%;
+    margin: 0 auto;
+    display: block !important; /* Asegura que sea visible en dispositivos móviles */
+}
+
+/* Contenedor principal sin margen superior */
+.container.mt-3 {
+    margin-top: 0 !important;
+}
+
+/* Animación para el carrusel */
+.carousel-item {
+    margin: 0;
+    padding: 0;
+    transition: transform 1s ease-in-out;
+}
+
+.carousel-item-next,
+.carousel-item-prev {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    transition: slide 1s ease-in-out;
+}
+
+.carousel-item-next.carousel-item-left,
+.carousel-item-prev.carousel-item-right {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.carousel-item-next {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.carousel-item-prev {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.carousel-item.active.carousel-item-left,
+.carousel-item.active.carousel-item-right {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Eliminar doble scroll */
+body, html {
+    overflow-x: hidden;
+}
+
+#wrapper {
+    overflow-x: hidden;
+}
+
+/* Estilos adicionales para la sección de corredores */
+.servicios-corredores {
+    background-color: #f8f9fa;
+}
+
+/* Animaciones suaves */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+</style>
+
+<!-- Agregar FontAwesome para los iconos -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+{% endblock %}

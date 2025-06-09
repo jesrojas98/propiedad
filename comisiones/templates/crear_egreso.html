@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Egreso de dinero</h2>
+
+    <!-- Formulario de Registro de Comisión -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header section-header">
+            Registro de Egreso de dinero
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field|title }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                    {{ form.descripcion|add_class:"form-control" }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.valor_egreso.id_for_label }}">Valor en CLP</label>
+                    {{ form.valor_egreso|add_class:"form-control" }}
+                </div>
+                <div class="d-flex justify-content-center mt-4">
+                    <button type="submit" class="btn btn-primary col-md-4 text-center">Guardar Egreso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+        <a href="{% url 'login:dashboard' %}" class="btn btn-danger">Volver al Dashboard</a>
+    </div>
+</div>
+
+<!-- Estilos personalizados -->
+<style>
+    /* Encabezados con degradado naranja-rojo */
+    .section-header {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        color: white;
+        padding: 10px;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+    }
+
+    /* Diseño de los cards */
+    .card {
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    /* Botón estilizado */
+    .btn-primary {
+        background-color: #ff5733;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #e14a2b;
+    }
+</style>
+
+{% endblock %}
