@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<style>
+    .descripcion-textarea {
+        height: 100px !important;
+        resize: none;
+    }
+    .section-header {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        color: white;
+        padding: 10px;
+        border-radius: 5px 5px 0 0;
+        font-weight: bold;
+    }
+    .card {
+        border: none;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<body class="bg-gradient-primary">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="text-center mt-4">
+                    <h1 class="h3 text-gray-900">Modificar Propiedad</h1>
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Sección General -->
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">General</div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label>Propietario:</label>
+                                    <select name="id_propietario" id="id_propietario" class="custom-select">
+                                        <option value="">-------</option>
+                                        {% for propietario in propietarios %}
+                                            <option value="{{ propietario.id }}" {% if propiedad.id_propietario.id == propietario.id %}selected{% endif %}>
+                                                {{ propietario.representante }} - {{ propietario.correo }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <label>Número de Rol (SII)*</label>
+                                    {{ form.numero_rol|add_class:"form-control" }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>Tipo de Creación:</label>
+                                    <select name="tipo_creacion" class="custom-select">
+                                        <option value="Venta" {% if propiedad.tipo_creacion == "Venta" %}selected{% endif %}>Venta</option>
+                                        <option value="Arriendo" {% if propiedad.tipo_creacion == "Arriendo" %}selected{% endif %}>Arriendo</option>
+                                    </select>
+                                    <label>Descripción*</label>
+                                    {{ form.descripcion|add_class:"form-control descripcion-textarea" }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label>Título (hasta 100 caracteres)*</label>
+                                    {{ form.titulo|add_class:"form-control" }}
+                                    <div class="form-group">
+                                        <label for="id_nueva">¿Es una propiedad nueva?</label>
+                                        <select name="nueva" id="id_nueva" class="custom-select">
+                                            <option value="No">Opciones (Por defecto: "No")</option>
+                                            {% for choice in form.nueva.field.choices %}
+                                                <option value="{{ choice.0 }}" {% if form.nueva.value == choice.0 %}selected{% endif %}>
+                                                    {{ choice.1 }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="{{ form.codigo_propiedad.id_for_label }}"{% if propiedad.codigo_propiedad == "codigo_propiedad" %}selected{% endif %}>Codigo de propiedad</label>
+                                        {{ form.codigo_propiedad|add_class:"form-control" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+<!-- Sección Ubicación -->
+<div class="card o-hidden border-0 shadow-lg my-5">
+    <div class="section-header">Ubicación</div>
+    <div class="card-body p-4">
+        <div class="row">
+            <div class="col-md-6">
+                <label>Región*</label>
+                <select name="region" id="region" class="custom-select">
+                    <option value="" {% if not region_seleccionada %}selected{% endif %}>Seleccione una opción</option>
+                    {% for region in regiones %}
+                        <option value="{{ region }}" {% if region == region_seleccionada %}selected{% endif %}>
+                            {{ region }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label>Comuna*</label>
+                {{ form.comuna|add_class:"form-control" }}
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <label>Calle*</label>
+                {{ form.calle|add_class:"form-control" }}
+            </div>
+            <div class="col-md-4">
+                <label>Número Calle*</label>
+                {{ form.numero_calle|add_class:"form-control" }}
+            </div>
+            {% if propiedad.tipo_propiedad == "Casa" or propiedad.tipo_propiedad == "Departamento" or propiedad.tipo_propiedad == "Oficina" %}
+            <div class="col-md-4">
+                <label>Número Casa</label>
+                {{ form.numero_casa|add_class:"form-control" }}
+            </div>
+            {% endif %}	
+        </div>
+    </div>
+</div>
+
+<!-- Sección Información adicional -->
+<div class="card o-hidden border-0 shadow-lg my-5">
+    <div class="section-header">Información adicional</div>
+    <div class="card-body p-4">
+        <div class="row">
+            <div class="col-md-4">
+                <label>Superficie construida (m²)*</label>
+                {{ form.superficie_construida|add_class:"form-control" }}
+            </div>
+            <div class="col-md-4">
+                <label>Superficie terreno (m²)</label>
+                {{ form.superficie_terreno|add_class:"form-control" }}
+            </div>
+            <div class="col-md-4">
+                <label>Año de Construcción</label>
+                {{ form.anio_construccion|add_class:"form-control" }}
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <label>Gastos comunes</label>
+                {{ form.gastos_comunes|add_class:"form-control" }}
+            </div>
+            <div class="col-md-4">
+                <label>Dormitorios*</label>
+                <select name="dormitorios" id="dormitorios" class="custom-select">
+                    <option value="">Seleccione una opción</option>
+                    {% for i in range_15 %}
+                        <option value="{{ i }}" {% if dormitorios_seleccionado and i == dormitorios_seleccionado %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label>Baños*</label>
+                <select name="banios" id="banios" class="custom-select">
+                    <option value="">Seleccione una opción</option>
+                    {% for i in range_15 %}
+                        <option value="{{ i }}" {% if banios_seleccionado and i == banios_seleccionado %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <label>Estacionamientos</label>
+                <select name="estacionamiento" id="estacionamiento" class="custom-select">
+                    <option value="">Seleccione una opción</option>
+                    {% for i in range_15 %}
+                        <option value="{{ i }}" {% if estacionamiento_seleccionado and i == estacionamiento_seleccionado %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label>Bodegas</label>
+                <select name="bodegas" id="bodegas" class="custom-select">
+                    <option value="">Seleccione una opción</option>
+                    {% for i in range_15 %}
+                        <option value="{{ i }}" {% if bodegas_seleccionado and i == bodegas_seleccionado %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label>Pisos</label>
+                <select name="pisos" id="pisos" class="custom-select">
+                    <option value="">Seleccione una opción</option>
+                    {% for i in range_3 %}
+                        <option value="{{ i }}" {% if pisos_seleccionado and i == pisos_seleccionado %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if propiedad.tipo_propiedad == "Parcela" or propiedad.tipo_propiedad == "Terreno" %}
+            <div class="col-md-3">
+                <label for="id_factibilidad_agua">Factibilidad Agua*</label>
+                <select name="factibilidad_agua" id="id_factibilidad_agua" class="custom-select">
+                    <option value="">-------</option>
+                    {% for choice in form.factibilidad_agua.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.factibilidad_agua.value == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="id_factibilidad_electricidad">Factibilidad Electricidad*</label>
+                <select name="factibilidad_electricidad" id="id_factibilidad_electricidad" class="custom-select">
+                    <option value="">-------</option>
+                    {% for choice in form.factibilidad_electricidad.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.factibilidad_electricidad.value == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="id_factibilidad_alcantarillado">Factibilidad Alcantarillado*</label>
+            <select name="factibilidad_alcantarillado" id="id_factibilidad_alcantarillado" class="custom-select">
+                <option value="">-------</option>
+                {% for choice in form.factibilidad_alcantarillado.field.choices %}
+                    <option value="{{ choice.0 }}" {% if form.factibilidad_alcantarillado.value == choice.0 %}selected{% endif %}>
+                        {{ choice.1 }}
+                    </option>
+                {% endfor %}
+            </select>
+            </div>
+            <div class="col-md-3">
+                <label for="id_factibilidad_gas">Factibilidad Gas*</label>
+                <select name="factibilidad_gas" id="id_factibilidad_gas" class="custom-select">
+                    <option value="">-------</option>
+                    {% for choice in form.factibilidad_gas.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.factibilidad_gas.value == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    
+</div>
+
+ {% if propiedad.tipo_propiedad != "Terreno" and propiedad.tipo_propiedad != "Parcela" %}
+                    <!-- Sección Otros -->
+<div class="card o-hidden border-0 shadow-lg my-5">
+<div class="section-header">Otros</div>
+<div class="card-body p-4">
+<div class="row">
+{% for opcion in form.otros.field.queryset %}
+<div class="col-md-3">
+<div class="form-check">
+<input class="form-check-input" type="checkbox" name="otros" value="{{ opcion.id }}" id="otros_{{ opcion.id }}"
+{% if opcion in propiedad.otros.all %}checked{% endif %}>
+<label class="form-check-label" for="otros_{{ opcion.id }}">{{ opcion.nombre }}</label>
+</div>
+</div>
+{% endfor %}
+</div>
+</div>
+                    </div>
+{% endif %}
+
+
+<!-- Sección Imágenes y Video -->
+<div class="card o-hidden border-0 shadow-lg my-5">
+    <div class="section-header">Imágenes / Video</div>
+    <div class="card-body p-4">
+        <div class="row">
+            {% for imagen in propiedad.imagenes.all %}
+                <div class="col-md-4 text-center">
+                    <!-- Imagen con modal -->
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalImagen{{ imagen.id }}">
+                        <img src="{{ imagen.imagen.url }}" class="img-fluid rounded shadow" style="cursor: pointer; width: 200px; height: 200px; object-fit: cover;">
+                    </a>
+
+                    <!-- Modal de imagen (Grande) -->
+                    <div class="modal fade" id="modalImagen{{ imagen.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Vista previa</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <img src="{{ imagen.imagen.url }}" class="img-fluid rounded shadow" style="max-width: 100%; height: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón de eliminar debajo de la imagen -->
+                    <button type="submit" name="eliminar_imagen" value="{{ imagen.id }}" class="btn btn-danger btn-sm mt-2 w-100">Eliminar</button>
+                </div>
+            {% empty %}
+                <p class="text-muted">No hay imágenes disponibles.</p>
+            {% endfor %}
+        </div>
+
+        <label class="mt-3">Subir nuevas imágenes:</label>
+        <input type="file" class="form-control-file" name="imagenes" multiple>
+
+        <label class="mt-3">Subir nuevo video:</label>
+        <input type="file" class="form-control-file" name="video">
+    </div>
+</div>
+
+
+
+                    <div class="d-grid gap-2 col-12 mx-auto mt-4">
+                        <button class="btn btn-success btn-user btn-block" type="submit">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

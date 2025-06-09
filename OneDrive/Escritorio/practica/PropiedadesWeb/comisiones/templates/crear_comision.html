@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Detalles del Vale Vista</h2>
+
+    <!-- Información del Documento Vale Vista -->
+    <div class="card shadow-sm">
+        <div class="card-header section-header">
+            Información del Vale Vista
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Propiedad:</strong> {{ documento.id_propiedad.titulo }}</p>
+                    <p><strong>Fecha:</strong> {{ documento.fecha|date:"d-m-Y" }}</p>
+                    <p><strong>Tipo de Documento:</strong> {{ documento.tipo_documento }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Comuna:</strong> {{ documento.id_propiedad.comuna }}</p>
+                    <p><strong>Región:</strong> {{ documento.id_propiedad.region }}</p>
+                    <p><strong>PDF:</strong> 
+                        {% if documento.pdf_documento %}
+                            <a href="{{ documento.pdf_documento.url }}" class="btn btn-info btn-sm" target="_blank">Ver PDF</a>
+                        {% else %}
+                            <span class="text-muted">No disponible</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de Registro de Comisión -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header section-header">
+            Registro de Comisión
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field|title }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.estado_vale_vista.id_for_label }}">Estado</label>
+                    {{ form.estado_vale_vista|add_class:"form-control" }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.valor_vale_vista.id_for_label }}">Valor</label>
+                    {{ form.valor_vale_vista|add_class:"form-control" }}
+                </div>
+
+                <div class="d-flex justify-content-center mt-4">
+                    <button type="submit" class="btn btn-primary col-md-4 text-center">Guardar Comisión</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+        <a href="{% url 'comisiones:listado_vales_vista' %}" class="btn btn-danger">Volver a la Lista</a>
+    </div>
+</div>
+
+<!-- Estilos personalizados -->
+<style>
+    /* Encabezados con degradado naranja-rojo */
+    .section-header {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        color: white;
+        padding: 10px;
+        font-weight: bold;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+    }
+
+    /* Diseño de los cards */
+    .card {
+        border-radius: 8px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    /* Botón estilizado */
+    .btn-primary {
+        background-color: #ff5733;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #e14a2b;
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,42 @@
+.custom-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.custom-select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.custom-textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px; /* 🔹 Bordes menos curvos */
+    border: 1px solid #aaa; /* 🔹 Color de borde más discreto */
+    font-size: 16px;
+    background-color: #fff;
+    resize: vertical; /* Permitir redimensionar solo en vertical */
+}
+
+    .descripcion-textarea {
+        height: 150px !important;
+        resize: none;
+    }
+    .section-header {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        color: white;
+        padding: 10px;
+        border-radius: 5px 5px 0 0;
+        font-weight: bold;
+        text-align: center;
+    }
+    .card {
+        border: none;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block content %}
+{% load humanize %}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <div class="card-body">
+            <h2 class="text-primary mb-4">Listado de Propiedades</h2>
+            
+            <!-- Filtro por comuna -->
+            <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                <input type="text" id="filtroComuna" class="form-control flex-grow-1" placeholder="Filtrar: Comuna">
+                <input type="text" id="filtroCdigo" class="form-control flex-grow-1" placeholder="Filtrar: Código de propiedad">
+                <select name="nueva" id="filtroPropiedadNueva" class="form-control flex-grow-1" aria-label="Nueva">
+                    <option value="" selected>Nueva: Sí o No</option>
+                    <option value="Sí">Sí</option>
+                    <option value="No">No</option>
+                </select>
+                <select name="tipo" id="filtroTipoPropiedad" class="form-control flex-grow-1" aria-label="Tipo">
+                    <option value="" selected>Tipo de propiedad</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Departamento">Departamento</option>
+                    <option value="Oficina">Oficina</option>
+                    <option value="Local Industrial">Local Industrial</option>
+                    <option value="Bodega">Bodega</option>
+                    <option value="Local Comercial">Local Comercial</option>
+                    <option value="Terreno">Terreno</option>
+                    <option value="Parcela">Parcela</option>
+                </select>
+                <a href="{% url 'propiedad:agregar_propiedad' %}" class="btn btn-success flex-grow-1">Crear</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-center">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>FOTO</th>
+                            <th>TITULO</th>
+                            <th>CODIGO</th>
+                            <th>COMUNA</th>
+                            <th>NUMERO ROL</th>
+                            <th>NUEVA</th>
+                            <th>FECHA DE CREACIÓN</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for propiedad in propiedades %}
+                        <tr data-tipo="{{ propiedad.tipo_propiedad }}">
+                            <td>
+                                {% if propiedad.imagenes.all %}
+                                    <img src="{{ propiedad.imagenes.first.imagen.url }}" class="img-thumbnail preview-img" width="50" data-toggle="modal" data-target="#imagenModal" data-src="{{ propiedad.imagenes.first.imagen.url }}">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/50" class="img-thumbnail">
+                                {% endif %}
+                            </td>
+                            <td>{{ propiedad.titulo|truncatechars:15 }}</td>
+                            <td>{{ propiedad.codigo_propiedad }}</td>
+                            <td>{{ propiedad.comuna }}</td>
+                            <td>{{ propiedad.numero_rol }}</td>
+                            <td>{{ propiedad.nueva }}</td>
+                            <td>{{ propiedad.fecha_creacion }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'propiedad:descripcion_propiedad' propiedad.id %}" class="btn btn-secondary">Detalles</a>
+                                    <a href="{% url 'documentos:mostrar_documentos' propiedad.id %}" class="btn btn-info">Documentos</a>
+                                    <a href="{% url 'propiedad:modificar_propiedad' propiedad.id %}" class="btn btn-warning">Modificar</a>
+                                    <a href="{% url 'propiedad:eliminar_propiedad' propiedad.id %}" class="btn btn-danger">Eliminar</a>
+                                    <a href="{% url 'operaciones:crear_operacion_venta' propiedad.id %}" class="btn btn-success">Iniciar operación</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No hay propiedades registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA VISUALIZAR IMAGEN EN GRANDE -->
+<div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imagenModalLabel">Vista Previa</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="imagenAmpliada" src="" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos Personalizados -->
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .btn-group .btn {
+        border-radius: 5px;
+    }
+    .img-thumbnail {
+        border-radius: 5px;
+        cursor: pointer; /* Hace que parezca clickeable */
+    }
+</style>
+
+<!-- JavaScript para mostrar la imagen en el modal -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Obtener elementos de filtro
+    const filtroNueva = document.getElementById("filtroPropiedadNueva");
+    const filtroTipo = document.getElementById("filtroTipoPropiedad");
+    const filtroComuna = document.getElementById("filtroComuna");
+    const filtroCodigo = document.getElementById("filtroCdigo"); // Mantuve el nombre original del id
+    
+    // Función para aplicar todos los filtros
+    function aplicarFiltros() {
+        const valorFiltroNueva = filtroNueva.value; // "Sí", "No" o ""
+        const valorFiltroTipo = filtroTipo.value;   // Tipo de propiedad o ""
+        const valorFiltroComuna = filtroComuna.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+        const valorFiltroCodigo = filtroCodigo.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+        
+        const filas = document.querySelectorAll("tbody tr");
+        
+        filas.forEach(fila => {
+            // Si es la fila de "No hay propiedades", ignorarla
+            if (fila.cells.length <= 1) return;
+            
+            const valorNueva = fila.querySelector("td:nth-child(6)").textContent.trim(); // Columna "Nueva"
+            const valorTipo = fila.getAttribute('data-tipo') || ""; // Obtener el tipo desde el atributo data-tipo
+            const valorComuna = fila.querySelector("td:nth-child(4)").textContent.trim().toLowerCase(); // Columna "COMUNA"
+            const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase(); // Columna "CODIGO"
+            
+            // Mostrar filas que cumplan con todos los filtros
+            const cumpleFiltroNueva = valorFiltroNueva === "" || valorNueva === valorFiltroNueva;
+            const cumpleFiltroTipo = valorFiltroTipo === "" || valorTipo === valorFiltroTipo;
+            const cumpleFiltroComuna = valorFiltroComuna === "" || valorComuna.includes(valorFiltroComuna);
+            const cumpleFiltroCodigo = valorFiltroCodigo === "" || valorCodigo.includes(valorFiltroCodigo);
+            
+            if (cumpleFiltroNueva && cumpleFiltroTipo && cumpleFiltroComuna && cumpleFiltroCodigo) {
+                fila.style.display = "";
+            } else {
+                fila.style.display = "none";
+            }
+        });
+    }
+    
+    // Agregar event listeners a todos los filtros
+    filtroNueva.addEventListener("change", aplicarFiltros);
+    filtroTipo.addEventListener("change", aplicarFiltros);
+    filtroComuna.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+    filtroCodigo.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+    
+    // Resto de tu código para el modal
+    document.querySelectorAll('.preview-img').forEach(img => {
+        img.addEventListener('click', function() {
+            const imageUrl = this.getAttribute('data-src');
+            document.getElementById('imagenAmpliada').setAttribute('src', imageUrl);
+        });
+    });
+});
+</script>
+
+{% endblock %}

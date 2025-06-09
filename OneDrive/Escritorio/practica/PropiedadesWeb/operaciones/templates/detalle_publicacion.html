@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sección de Carrusel -->
+        <div class="col-md-8">
+            <div id="carouselPropiedad" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% if publicacion.id_propiedad.imagenes.all %}
+                        {% for imagen in publicacion.id_propiedad.imagenes.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ imagen.imagen.url }}" class="d-block w-100 rounded main-image" alt="Imagen de la propiedad">
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if publicacion.id_propiedad.video %}
+                        <div class="carousel-item {% if not publicacion.id_propiedad.imagenes.exists %}active{% endif %}">
+                            <video controls class="d-block w-100 rounded main-image video-player">
+                                <source src="{{ publicacion.id_propiedad.video.url }}" type="video/mp4">
+                                Tu navegador no soporta la reproducción de video.
+                            </video>
+                        </div>
+                    {% endif %}
+
+                    {% if not publicacion.id_propiedad.imagenes.exists and not publicacion.id_propiedad.video %}
+                        <div class="carousel-item active">
+                            <img src="{% static 'img/default-house.jpg' %}" class="d-block w-100 rounded main-image" alt="Imagen por defecto">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Controles del carrusel debajo de la imagen -->
+                <div class="carousel-controls">
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselPropiedad" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselPropiedad" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de la propiedad -->
+        <div class="col-md-4">
+            <div class="card shadow-sm p-3">
+                <div class="section-header">Detalles de la Propiedad</div>
+                <div class="card-body">
+                    <h5 class="text-muted">
+                        {% if publicacion.tipo_publicacion == "venta" %}
+                            Propiedad en Venta
+                        {% else %}
+                            Propiedad en Arriendo
+                        {% endif %}
+                    </h5>
+                    <h4 class="fw-bold">{{ publicacion.titulo }}</h4>
+                    <p class="text-muted small">Publicado hace {{ publicacion.fecha_creacion|timesince }}</p>
+                    <h3 class="text-primary fw-bold">
+                        {{ publicacion.tipo_valor }} {{ publicacion.valor|intcomma }}
+                    </h3>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-house-door"></i> {{ publicacion.id_propiedad.superficie_terreno }} m² Totales</li>
+                        <li><i class="bi bi-door-open"></i> {{ publicacion.id_propiedad.dormitorios }} Dormitorios</li>
+                        <li><i class="bi bi-bathtub"></i> {{ publicacion.id_propiedad.banios }} Baños</li>
+                    </ul>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'contacto_corredor:contacto_interesado' publicacion.id %}" class="btn btn-primary">
+                            <i class="bi bi-chat-dots"></i> Contactar
+                        </a>
+                        <a href="{% url 'operaciones:credito' %}" class="btn btn-primary">
+                            <i class="bi bi-chat-dots"></i> Simula tu credito
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Básica -->
+    <div class="card shadow-sm mt-4">
+        <div class="section-header">Información Básica</div>
+        <div class="card-body">
+            <div class="row">
+                {% if publicacion.id_propiedad.dormitorios != None %}
+                <div class="col-md-4"><strong> Dormitorios:</strong> {{ publicacion.id_propiedad.dormitorios }}</div>
+                {% else %}
+                <div class="col-md-4"><strong> Dormitorios:</strong> 0</div>
+                {% endif %}
+                {% if publicacion.id_propiedad.banios != None %}
+                <div class="col-md-4"><strong> Baños:</strong> {{ publicacion.id_propiedad.banios }}</div>
+                {% else %}
+                <div class="col-md-4"><strong> Baños:</strong> 0</div>
+                {% endif %}
+                {% if publicacion.id_propiedad.pisos != None %}
+                <div class="col-md-4"><strong> Pisos:</strong> {{ publicacion.id_propiedad.pisos }}</div>
+                {% else %}
+                <div class="col-md-4"><strong> Pisos:</strong> 0</div>
+                {% endif %}
+            </div>
+            <div class="row mt-2">
+                {% if publicacion.id_propiedad.superficie_construida != None %}
+                <div class="col-md-4"><strong> Metros construidos:</strong> {{ publicacion.id_propiedad.superficie_construida }} m²</div>
+                {% else %}
+                <div class="col-md-4"><strong> Metros construidos:</strong> 0 m²</div>
+                {% endif %}
+                {% if publicacion.id_propiedad.superficie_terreno != None %}
+                <div class="col-md-4"><strong> Superficie terreno:</strong> {{ publicacion.id_propiedad.superficie_terreno }} m²</div>
+                {% else %}
+                <div class="col-md-4"><strong> Superficie terreno:</strong> 0 m²</div>
+                {% endif %}
+                {% if publicacion.id_propiedad.estacionamiento != None %}
+                <div class="col-md-4"><strong> Estacionamientos:</strong> {{ publicacion.id_propiedad.estacionamiento }}</div>
+                {% else %}
+                <div class="col-md-4"><strong> Estacionamientos:</strong> 0</div>
+                {% endif %}
+            </div>
+            <div class="row mt-2">
+                    {% if publicacion.id_propiedad.bodegas != None %}
+                    <div class="col-md-4"><strong> Bodegas:</strong> {{ publicacion.id_propiedad.bodegas }}</div>
+                    {% else %}
+                    <div class="col-md-4"><strong> Bodegas:</strong> 0</div>
+                    {% endif %}
+                    {% if publicacion.id_propiedad.anio_construccion != None %}
+                    <div class="col-md-4"><strong> Año de Construcción:</strong> {{ publicacion.id_propiedad.anio_construccion }}</div>
+                    {% else %}
+                    <div class="col-md-4"><strong> Año de Construcción:</strong> No especificado</div>
+                    {% endif %}
+                <div class="col-md-4"><strong> Fecha publicación:</strong> {{ publicacion.fecha_creacion|date:"d-m-Y" }}</div>
+            </div>  
+        </div>
+    </div>
+
+    <!-- Equipamiento -->
+    <div class="card shadow-sm mt-4">
+        <div class="section-header">Equipamiento</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <strong>Otros Equipamientos</strong>
+                    <div class="row">
+                        {% if publicacion.id_propiedad.otros.exists %}
+                            {% for item in publicacion.id_propiedad.otros.all %}
+                                <div class="col-md-3">
+                                    <li>✅ {{ item.nombre }}</li>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-md-12">
+                                <li>No especificado</li>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="card shadow-sm mt-4">
+        <div class="section-header">Información Adicional</div>
+        <div class="card-body">
+            <p>{{ publicacion.descripcion }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos -->
+<style>
+    .section-header {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        color: white;
+        padding: 10px;
+        border-radius: 5px 5px 0 0;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 430px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+
+    /* Controles del carrusel debajo de la imagen */
+    .carousel-controls {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .carousel-control-prev, .carousel-control-next {
+        background: linear-gradient(to right, #ff5733, #ff8c00);
+        padding: 5px;
+        border-radius: 15%;
+        position: static;
+        margin: 0 10px;
+    }
+
+    /* Equipamiento en columnas */
+    .card-body ul {
+        padding-left: 0;
+    }
+
+    .card-body li {
+        list-style: none;
+        padding: 5px 0;
+    }
+</style>
+{% endblock %}
