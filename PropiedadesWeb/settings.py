@@ -18,9 +18,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
-# Configurar PyMySQL para usar en lugar de mysqlclient
-import pymysql
-pymysql.install_as_MySQLdb()
+# NO configurar PyMySQL - usaremos PostgreSQL en Railway
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -93,38 +91,25 @@ WSGI_APPLICATION = 'PropiedadesWeb.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Detectar si estamos en Railway usando variables manuales
-RAILWAY_DB_HOST = config('DB_HOST', default=None)
 DATABASE_URL = config('DATABASE_URL', default=None)
 
-if RAILWAY_DB_HOST:
-    # Railway - Configuración manual (como lo hiciste antes)
-    print("Using manual Railway MySQL configuration")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': config('DB_NAME', default='railway'),
-            'USER': config('DB_USER', default='root'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST'),
-            'PORT': config('DB_PORT', default='3306'),
-            'OPTIONS': {
-                'sql_mode': 'traditional',
-            }
-        }
-    }
-elif DATABASE_URL:
-    # Railway - Configuración automática
-    print("Using Railway DATABASE_URL")
+if DATABASE_URL:
+    # Railway con PostgreSQL (DATABASE_URL automática)
+    print("Using Railway PostgreSQL DATABASE_URL")
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=600
+            conn_max_age=600,
+            conn_health_checks=True,
         )
     }
 else:
     # Desarrollo local - MySQL
     print("Using local MySQL configuration")
+    # Configurar PyMySQL solo para desarrollo local
+    import pymysql
+    pymysql.install_as_MySQLdb()
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
