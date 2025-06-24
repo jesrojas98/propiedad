@@ -18,6 +18,10 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
+# Configurar PyMySQL para usar en lugar de mysqlclient
+import pymysql
+pymysql.install_as_MySQLdb()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -89,28 +93,29 @@ WSGI_APPLICATION = 'PropiedadesWeb.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Base de datos local para desarrollo
-DATABASES_LOCAL = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'PropiedadesWebDB',
-        'USER': 'root',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',
-        'PORT': '3306',
+# Detectar si estamos en Railway o desarrollo local
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Railway - MySQL usando dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600
+        )
     }
-}
-
-# Base de datos para producción (Railway)
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL', default='mysql://root:admin@localhost:3306/PropiedadesWebDB')
-    )
-}
-
-# Si no hay DATABASE_URL (desarrollo local), usar MySQL
-if not config('DATABASE_URL', default=None):
-    DATABASES = DATABASES_LOCAL
+else:
+    # Desarrollo local - MySQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('DB_NAME', default='PropiedadesWebDB'),
+            'USER': config('DB_USER', default='root'),
+            'PASSWORD': config('DB_PASSWORD', default='admin'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='3306'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -162,8 +167,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='jesusalerojasguti@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='ypdn xupf pllz abrd')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='propiedadeswebprueba@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='Contrasena123')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Cloudinary configuration
