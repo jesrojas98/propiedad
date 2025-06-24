@@ -93,11 +93,29 @@ WSGI_APPLICATION = 'PropiedadesWeb.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Detectar si estamos en Railway o desarrollo local
+# Detectar si estamos en Railway usando variables manuales
+RAILWAY_DB_HOST = config('DB_HOST', default=None)
 DATABASE_URL = config('DATABASE_URL', default=None)
 
-if DATABASE_URL:
-    # Railway - MySQL usando dj_database_url
+if RAILWAY_DB_HOST:
+    # Railway - Configuración manual (como lo hiciste antes)
+    print("Using manual Railway MySQL configuration")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('DB_NAME', default='railway'),
+            'USER': config('DB_USER', default='root'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST'),
+            'PORT': config('DB_PORT', default='3306'),
+            'OPTIONS': {
+                'sql_mode': 'traditional',
+            }
+        }
+    }
+elif DATABASE_URL:
+    # Railway - Configuración automática
+    print("Using Railway DATABASE_URL")
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -106,6 +124,7 @@ if DATABASE_URL:
     }
 else:
     # Desarrollo local - MySQL
+    print("Using local MySQL configuration")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -114,6 +133,9 @@ else:
             'PASSWORD': config('DB_PASSWORD', default='admin'),
             'HOST': config('DB_HOST', default='localhost'),
             'PORT': config('DB_PORT', default='3306'),
+            'OPTIONS': {
+                'sql_mode': 'traditional',
+            }
         }
     }
 
