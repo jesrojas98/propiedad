@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '*.railway.app',
     '.railway.app',
+    'propiedad-production.up.railway.app',  # Tu dominio específico
 ]
 
 # Application definition
@@ -88,19 +89,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'PropiedadesWeb.wsgi.application'
 
-# Database
+# Database - Versión simplificada para debugging
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASE_URL = config('DATABASE_URL', default=None)
+import os
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Railway con PostgreSQL (DATABASE_URL automática)
-    print("Using Railway PostgreSQL DATABASE_URL")
+    # Railway con PostgreSQL
+    print(f"Using Railway PostgreSQL: {DATABASE_URL[:50]}...")
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
+            conn_max_age=0,  # Sin pooling para debugging
         )
     }
 else:
@@ -113,14 +115,11 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': config('DB_NAME', default='PropiedadesWebDB'),
-            'USER': config('DB_USER', default='root'),
-            'PASSWORD': config('DB_PASSWORD', default='admin'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='3306'),
-            'OPTIONS': {
-                'sql_mode': 'traditional',
-            }
+            'NAME': 'PropiedadesWebDB',
+            'USER': 'root',
+            'PASSWORD': 'admin',
+            'HOST': 'localhost',
+            'PORT': '3306',
         }
     }
 
@@ -194,11 +193,17 @@ cloudinary.config(
 
 # Security settings for production
 if not DEBUG:
+    # Configuraciones de seguridad que NO causan problemas en Railway
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_REDIRECT_EXEMPT = []
-    SECURE_SSL_REDIRECT = True
+    
+    # Railway maneja HTTPS automáticamente - no forzar redirecciones
+    SECURE_SSL_REDIRECT = False  # Importante: Railway maneja SSL
+    
+    # Configuraciones seguras para cookies (Railway soporta HTTPS)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    
+    # Configuraciones adicionales para Railway
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_TZ = True
