@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 {% load humanize %}
+{% load cloudinary %}
+
 <div class="container mt-5">
     <div class="card shadow-lg p-4">
         <div class="card-body">
@@ -51,14 +53,13 @@
                             <td>{{ publicacion.id_propiedad.titulo }}</td>
                             <td>{{ publicacion.id_propiedad.codigo_propiedad }}</td>
                             <td>
-                                {% if publicacion.id_propiedad.imagenes.all %}
-                                    <img src="{{ publicacion.id_propiedad.imagenes.first.imagen.url }}" 
-                                         class="img-thumbnail preview-image" width="50"
-                                         data-bs-toggle="modal" data-bs-target="#imageModal"
-                                         onclick="setModalImage(this)">
+                                {% if publicacion.id_propiedad.imagenes.exists %}
+                                    {% with primera_imagen=publicacion.id_propiedad.imagenes.first %}
+                                        {% cloudinary primera_imagen.imagen width=50 height=50 crop="fill" %}
+                                    {% endwith %}
                                 {% else %}
-                                    <img src="https://via.placeholder.com/50" 
-                                         class="img-thumbnail preview-image" width="50">
+                                    <img src="https://via.placeholder.com/50x50/cccccc/666666?text=Sin+Foto" 
+                                         class="img-thumbnail preview-image" width="50" height="50">
                                 {% endif %}
                             </td>
                             <td>{{ publicacion.id_propiedad.id_propietario.representante }}</td>
@@ -93,20 +94,20 @@
 
 <!-- Modal para la imagen -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="imageModalLabel">Vista Previa</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <img id="modalImage" src="/placeholder.svg" class="img-fluid" alt="Vista previa">
+                <img id="modalImage" src="" class="img-fluid rounded" alt="Vista previa" loading="lazy">
             </div>
         </div>
     </div>
 </div>
 
-<!-- Estilos Personalizados -->
+<!-- Resto del CSS y JavaScript igual -->
 <style>
     .table th, .table td {
         vertical-align: middle;
@@ -117,121 +118,114 @@
     .img-thumbnail {
         border-radius: 5px;
         cursor: pointer;
+        object-fit: cover;
+    }
+    .cursor-pointer {
+        cursor: pointer;
     }
 </style>
 
-<!-- Scripts -->
 <script>
-    // Mostrar imagen en el modal al hacer clic
-    function setModalImage(img) {
-        document.getElementById("modalImage").src = img.src;
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-        // Obtener elementos de filtro
-        const filtroTipoPublicacion = document.getElementById("filtroTipoPublicacion");
-        const filtroTipoPropiedad = document.getElementById("filtroTipoPropiedad");
-        const filtroComuna = document.getElementById("filtroComuna");
-        const filtroCodigo = document.getElementById("filtroCodigo");
+// JavaScript para filtros
+document.addEventListener("DOMContentLoaded", function() {
+    const filtroTipoPublicacion = document.getElementById("filtroTipoPublicacion");
+    const filtroTipoPropiedad = document.getElementById("filtroTipoPropiedad");
+    const filtroComuna = document.getElementById("filtroComuna");
+    const filtroCodigo = document.getElementById("filtroCodigo");
+    
+    function aplicarFiltros() {
+        const valorFiltroTipoPublicacion = filtroTipoPublicacion.value;
+        const valorFiltroTipoPropiedad = filtroTipoPropiedad.value;
+        const valorFiltroComuna = filtroComuna.value.toLowerCase();
+        const valorFiltroCodigo = filtroCodigo.value.toLowerCase();
         
-        // Función para aplicar todos los filtros
-        function aplicarFiltros() {
-            const valorFiltroTipoPublicacion = filtroTipoPublicacion.value; // "Venta", "Arriendo" o ""
-            const valorFiltroTipoPropiedad = filtroTipoPropiedad.value;   // Tipo de propiedad o ""
-            const valorFiltroComuna = filtroComuna.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
-            const valorFiltroCodigo = filtroCodigo.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+        const filas = document.querySelectorAll("tbody tr");
+        
+        filas.forEach(fila => {
+            if (fila.cells.length <= 1) return;
             
-            const filas = document.querySelectorAll("tbody tr");
+            const valorTipoPublicacion = fila.querySelector("td:nth-child(1)").textContent.trim();
+            const valorTipoPropiedad = fila.getAttribute('data-tipo-propiedad') || "";
+            const valorComuna = fila.querySelector("td:nth-child(6)").textContent.trim().toLowerCase();
+            const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase();
             
-            filas.forEach(fila => {
-                // Si es la fila de "No hay publicaciones", ignorarla
-                if (fila.cells.length <= 1) return;
-                
-                const valorTipoPublicacion = fila.querySelector("td:nth-child(1)").textContent.trim(); // Columna "TIPO"
-                const valorTipoPropiedad = fila.getAttribute('data-tipo-propiedad') || ""; // Obtener el tipo desde el atributo data-tipo-propiedad
-                const valorComuna = fila.querySelector("td:nth-child(6)").textContent.trim().toLowerCase(); // Columna "COMUNA"
-                const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase(); // Columna "CODIGO"
-                
-                // Mostrar filas que cumplan con todos los filtros
-                const cumpleFiltroTipoPublicacion = valorFiltroTipoPublicacion === "" || valorTipoPublicacion === valorFiltroTipoPublicacion;
-                const cumpleFiltroTipoPropiedad = valorFiltroTipoPropiedad === "" || valorTipoPropiedad === valorFiltroTipoPropiedad;
-                const cumpleFiltroComuna = valorFiltroComuna === "" || valorComuna.includes(valorFiltroComuna);
-                const cumpleFiltroCodigo = valorFiltroCodigo === "" || valorCodigo.includes(valorFiltroCodigo);
-                
-                if (cumpleFiltroTipoPublicacion && cumpleFiltroTipoPropiedad && cumpleFiltroComuna && cumpleFiltroCodigo) {
-                    fila.style.display = "";
-                } else {
-                    fila.style.display = "none";
-                }
-            });
-        }
-        
-        // Agregar event listeners a todos los filtros
-        filtroTipoPublicacion.addEventListener("change", aplicarFiltros);
-        filtroTipoPropiedad.addEventListener("change", aplicarFiltros);
-        filtroComuna.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
-        filtroCodigo.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
-        
-        // Botón de cambio de estado Activa/Inactiva
-        document.querySelectorAll(".estado-btn").forEach(button => {
-            button.addEventListener("click", function() {
-                let publicacionId = this.getAttribute("data-id");
-                let button = this;
-
-                fetch(`/cambiar-estado/${publicacionId}/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}",
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        if (data.estado) {
-                            button.classList.remove("btn-danger");
-                            button.classList.add("btn-success");
-                            button.textContent = "Activa";
-                        } else {
-                            button.classList.remove("btn-success");
-                            button.classList.add("btn-danger");
-                            button.textContent = "Inactiva";
-                        }
-                    }
-                });
-            });
+            const cumpleFiltroTipoPublicacion = valorFiltroTipoPublicacion === "" || valorTipoPublicacion === valorFiltroTipoPublicacion;
+            const cumpleFiltroTipoPropiedad = valorFiltroTipoPropiedad === "" || valorTipoPropiedad === valorFiltroTipoPropiedad;
+            const cumpleFiltroComuna = valorFiltroComuna === "" || valorComuna.includes(valorFiltroComuna);
+            const cumpleFiltroCodigo = valorFiltroCodigo === "" || valorCodigo.includes(valorFiltroCodigo);
+            
+            if (cumpleFiltroTipoPublicacion && cumpleFiltroTipoPropiedad && cumpleFiltroComuna && cumpleFiltroCodigo) {
+                fila.style.display = "";
+            } else {
+                fila.style.display = "none";
+            }
         });
+    }
+    
+    filtroTipoPublicacion.addEventListener("change", aplicarFiltros);
+    filtroTipoPropiedad.addEventListener("change", aplicarFiltros);
+    filtroComuna.addEventListener("input", aplicarFiltros);
+    filtroCodigo.addEventListener("input", aplicarFiltros);
+    
+    // Event listeners para botones de estado y destacar
+    document.querySelectorAll(".estado-btn").forEach(button => {
+        button.addEventListener("click", function() {
+            let publicacionId = this.getAttribute("data-id");
+            let button = this;
 
-        // Botón de destacar publicación
-        document.querySelectorAll(".destacar-btn").forEach(button => {
-            button.addEventListener("click", function() {
-                let publicacionId = this.getAttribute("data-id");
-                let button = this;
-
-                fetch(`/destacar-publicacion/${publicacionId}/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}",
-                        "Content-Type": "application/json"
+            fetch(`/cambiar-estado/${publicacionId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.estado) {
+                        button.classList.remove("btn-danger");
+                        button.classList.add("btn-success");
+                        button.textContent = "Activa";
+                    } else {
+                        button.classList.remove("btn-success");
+                        button.classList.add("btn-danger");
+                        button.textContent = "Inactiva";
                     }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        if (data.destacada) {
-                            button.classList.remove("btn-secondary");
-                            button.classList.add("btn-info");
-                            button.textContent = "Destacada";
-                        } else {
-                            button.classList.remove("btn-info");
-                            button.classList.add("btn-secondary");
-                            button.textContent = "Normal";
-                        }
-                    }
-                });
+                }
             });
         });
     });
+
+    document.querySelectorAll(".destacar-btn").forEach(button => {
+        button.addEventListener("click", function() {
+            let publicacionId = this.getAttribute("data-id");
+            let button = this;
+
+            fetch(`/destacar-publicacion/${publicacionId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.destacada) {
+                        button.classList.remove("btn-secondary");
+                        button.classList.add("btn-info");
+                        button.textContent = "Destacada";
+                    } else {
+                        button.classList.remove("btn-info");
+                        button.classList.add("btn-secondary");
+                        button.textContent = "Normal";
+                    }
+                }
+            });
+        });
+    });
+});
 </script>
 
 {% endblock %}

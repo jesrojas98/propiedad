@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% load humanize %}
+{% load cloudinary %}
 
 <div class="container mt-5">
     <div class="card shadow-lg p-4">
@@ -10,7 +11,7 @@
             <!-- Filtro por comuna -->
             <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
                 <input type="text" id="filtroComuna" class="form-control flex-grow-1" placeholder="Filtrar: Comuna">
-                <input type="text" id="filtroCdigo" class="form-control flex-grow-1" placeholder="Filtrar: Código de propiedad">
+                <input type="text" id="filtroCodigo" class="form-control flex-grow-1" placeholder="Filtrar: Código de propiedad">
                 <select name="nueva" id="filtroPropiedadNueva" class="form-control flex-grow-1" aria-label="Nueva">
                     <option value="" selected>Nueva: Sí o No</option>
                     <option value="Sí">Sí</option>
@@ -48,10 +49,13 @@
                         {% for propiedad in propiedades %}
                         <tr data-tipo="{{ propiedad.tipo_propiedad }}">
                             <td>
-                                {% if propiedad.imagenes.all %}
-                                    <img src="{{ propiedad.imagenes.first.imagen.url }}" class="img-thumbnail preview-img" width="50" data-toggle="modal" data-target="#imagenModal" data-src="{{ propiedad.imagenes.first.imagen.url }}">
+                                {% if propiedad.imagenes.exists %}
+                                    {% with primera_imagen=propiedad.imagenes.first %}
+                                        {% cloudinary primera_imagen.imagen width=50 height=50 crop="fill" class="img-thumbnail preview-img cursor-pointer" %}
+                                    {% endwith %}
                                 {% else %}
-                                    <img src="https://via.placeholder.com/50" class="img-thumbnail">
+                                    <img src="https://via.placeholder.com/50x50/cccccc/666666?text=Sin+Foto" 
+                                         class="img-thumbnail property-thumbnail" width="50" height="50">
                                 {% endif %}
                             </td>
                             <td>{{ propiedad.titulo|truncatechars:15 }}</td>
@@ -62,11 +66,11 @@
                             <td>{{ propiedad.fecha_creacion }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{% url 'propiedad:descripcion_propiedad' propiedad.id %}" class="btn btn-secondary">Detalles</a>
-                                    <a href="{% url 'documentos:mostrar_documentos' propiedad.id %}" class="btn btn-info">Documentos</a>
-                                    <a href="{% url 'propiedad:modificar_propiedad' propiedad.id %}" class="btn btn-warning">Modificar</a>
-                                    <a href="{% url 'propiedad:eliminar_propiedad' propiedad.id %}" class="btn btn-danger">Eliminar</a>
-                                    <a href="{% url 'operaciones:crear_operacion_venta' propiedad.id %}" class="btn btn-success">Iniciar operación</a>
+                                    <a href="{% url 'propiedad:descripcion_propiedad' propiedad.id %}" class="btn btn-secondary btn-sm">Detalles</a>
+                                    <a href="{% url 'documentos:mostrar_documentos' propiedad.id %}" class="btn btn-info btn-sm">Documentos</a>
+                                    <a href="{% url 'propiedad:modificar_propiedad' propiedad.id %}" class="btn btn-warning btn-sm">Modificar</a>
+                                    <a href="{% url 'propiedad:eliminar_propiedad' propiedad.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                                    <a href="{% url 'operaciones:crear_operacion_venta' propiedad.id %}" class="btn btn-success btn-sm">Iniciar operación</a>
                                 </div>
                             </td>
                         </tr>
@@ -82,18 +86,16 @@
     </div>
 </div>
 
-<!-- MODAL PARA VISUALIZAR IMAGEN EN GRANDE -->
+<!-- Modal para visualizar imagen en grande -->
 <div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="imagenModalLabel">Vista Previa</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body text-center">
-                <img id="imagenAmpliada" src="" class="img-fluid rounded shadow">
+                <img id="imagenAmpliada" src="" class="img-fluid rounded shadow modal-image" loading="lazy">
             </div>
         </div>
     </div>
@@ -106,28 +108,69 @@
     }
     .btn-group .btn {
         border-radius: 5px;
+        margin: 0 1px;
     }
+    
+    /* Estilos para las imágenes thumbnail - ajustadas al contenedor */
     .img-thumbnail {
         border-radius: 5px;
-        cursor: pointer; /* Hace que parezca clickeable */
+        cursor: pointer;
+        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
+        transition: transform 0.2s ease;
+        width: 50px;
+        height: 50px;
+    }
+    
+    .img-thumbnail:hover {
+        transform: scale(1.05);
+    }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    
+    /* Estilos para la imagen en el modal - también ajustada */
+    .modal-image {
+        max-width: 100%;
+        max-height: 70vh; /* Limitar altura del modal */
+        object-fit: contain; /* La imagen se ajusta sin cortarse */
+        background-color: #f8f9fa; /* Color de fondo consistente */
+    }
+    
+    /* Asegurar que las imágenes placeholder también se ajusten */
+    .property-thumbnail {
+        object-fit: contain;
+        background-color: #f8f9fa;
+    }
+    
+    /* Responsive para botones en móviles */
+    @media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+        }
+        .btn-group .btn {
+            margin: 1px 0;
+            font-size: 0.8rem;
+        }
     }
 </style>
 
-<!-- JavaScript para mostrar la imagen en el modal -->
+<!-- JavaScript para filtros y modal -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // Obtener elementos de filtro
     const filtroNueva = document.getElementById("filtroPropiedadNueva");
     const filtroTipo = document.getElementById("filtroTipoPropiedad");
     const filtroComuna = document.getElementById("filtroComuna");
-    const filtroCodigo = document.getElementById("filtroCdigo"); // Mantuve el nombre original del id
+    const filtroCodigo = document.getElementById("filtroCodigo");
     
     // Función para aplicar todos los filtros
     function aplicarFiltros() {
-        const valorFiltroNueva = filtroNueva.value; // "Sí", "No" o ""
-        const valorFiltroTipo = filtroTipo.value;   // Tipo de propiedad o ""
-        const valorFiltroComuna = filtroComuna.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
-        const valorFiltroCodigo = filtroCodigo.value.toLowerCase(); // Convertir a minúsculas para comparación insensible
+        const valorFiltroNueva = filtroNueva.value;
+        const valorFiltroTipo = filtroTipo.value;
+        const valorFiltroComuna = filtroComuna.value.toLowerCase();
+        const valorFiltroCodigo = filtroCodigo.value.toLowerCase();
         
         const filas = document.querySelectorAll("tbody tr");
         
@@ -135,10 +178,10 @@ document.addEventListener("DOMContentLoaded", function() {
             // Si es la fila de "No hay propiedades", ignorarla
             if (fila.cells.length <= 1) return;
             
-            const valorNueva = fila.querySelector("td:nth-child(6)").textContent.trim(); // Columna "Nueva"
-            const valorTipo = fila.getAttribute('data-tipo') || ""; // Obtener el tipo desde el atributo data-tipo
-            const valorComuna = fila.querySelector("td:nth-child(4)").textContent.trim().toLowerCase(); // Columna "COMUNA"
-            const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase(); // Columna "CODIGO"
+            const valorNueva = fila.querySelector("td:nth-child(6)").textContent.trim();
+            const valorTipo = fila.getAttribute('data-tipo') || "";
+            const valorComuna = fila.querySelector("td:nth-child(4)").textContent.trim().toLowerCase();
+            const valorCodigo = fila.querySelector("td:nth-child(3)").textContent.trim().toLowerCase();
             
             // Mostrar filas que cumplan con todos los filtros
             const cumpleFiltroNueva = valorFiltroNueva === "" || valorNueva === valorFiltroNueva;
@@ -157,14 +200,22 @@ document.addEventListener("DOMContentLoaded", function() {
     // Agregar event listeners a todos los filtros
     filtroNueva.addEventListener("change", aplicarFiltros);
     filtroTipo.addEventListener("change", aplicarFiltros);
-    filtroComuna.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
-    filtroCodigo.addEventListener("input", aplicarFiltros); // Usando "input" para filtrar mientras se escribe
+    filtroComuna.addEventListener("input", aplicarFiltros);
+    filtroCodigo.addEventListener("input", aplicarFiltros);
     
-    // Resto de tu código para el modal
+    // Funcionalidad del modal para las imágenes
     document.querySelectorAll('.preview-img').forEach(img => {
         img.addEventListener('click', function() {
-            const imageUrl = this.getAttribute('data-src');
-            document.getElementById('imagenAmpliada').setAttribute('src', imageUrl);
+            // Obtener la URL de la imagen desde Cloudinary
+            const imageUrl = this.src;
+            // Crear una versión de mayor resolución para el modal
+            const highResUrl = imageUrl.replace(/w_50,h_50/, 'w_800,h_600');
+            
+            document.getElementById('imagenAmpliada').setAttribute('src', highResUrl);
+            
+            // Mostrar el modal
+            const modal = new bootstrap.Modal(document.getElementById('imagenModal'));
+            modal.show();
         });
     });
 });

@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -160,14 +161,28 @@
         width: 100%;
         gap: 10px;
         height: 800px;
-        object-fit: cover;
+        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
         border-radius: 10px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .propiedad-video {
         height: 800px;
-        object-fit: cover;
+        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
+    }
+
+    /* Asegurar que el contenedor del carrusel mantenga su altura */
+    .carousel-inner {
+        height: 800px; /* Altura fija para el contenedor */
+    }
+
+    .carousel-item {
+        height: 100%; /* Los items ocupan toda la altura del contenedor */
+        display: flex;
+        align-items: center; /* Centrar verticalmente */
+        justify-content: center; /* Centrar horizontalmente */
     }
 
     /* Estilos de las flechas discretas */
@@ -182,6 +197,7 @@
         color: white;
         opacity: 0.7;
         transition: opacity 0.3s ease;
+        z-index: 5; /* Asegurar que estén por encima */
     }
 
     .custom-arrow:hover {

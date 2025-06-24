@@ -4,6 +4,149 @@
 
 {% block content %}
 <style>
+        .upload-section {
+        border: 2px dashed #dee2e6;
+        border-radius: 15px;
+        padding: 40px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    
+    .upload-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(0,123,255,0.03) 10px,
+            rgba(0,123,255,0.03) 20px
+        );
+        animation: move 20s linear infinite;
+    }
+    
+    @keyframes move {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    .upload-section:hover {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,123,255,0.1);
+    }
+    
+    .upload-section.dragover {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+        transform: scale(1.02);
+    }
+    
+    .upload-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .upload-section:hover .upload-icon {
+        color: #007bff;
+        transform: scale(1.1);
+    }
+    
+    /* Preview de archivos */
+    .file-preview {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 20px;
+        border-radius: 10px;
+        background: white;
+        padding: 15px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #e9ecef;
+    }
+    
+    .preview-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #007bff;
+        transition: transform 0.2s ease;
+    }
+    
+    .preview-item:hover {
+        transform: translateX(5px);
+    }
+    
+    .preview-item img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
+    
+    /* Upload de video */
+    .video-upload {
+        border: 2px dashed #dc3545;
+        border-radius: 10px;
+        padding: 30px 20px;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+        transition: all 0.3s ease;
+    }
+    
+    .video-upload:hover {
+        border-color: #c82333;
+        background: linear-gradient(135deg, #ffe6e6 0%, #ffcccc 100%);
+        transform: translateY(-2px);
+    }
+    
+    /* Progress bar */
+    .progress-text {
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    /* Animaciones */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .upload-section.processing {
+        animation: pulse 2s infinite;
+        border-color: #28a745;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .upload-section {
+            padding: 30px 15px;
+        }
+        .upload-icon {
+            font-size: 2rem;
+        }
+        .file-preview {
+            max-height: 200px;
+        }
+    }
     .descripcion-textarea {
         height: 150px !important;
         resize: none;
@@ -309,18 +452,144 @@
                     </div>
                     <!-- Sección de imágenes y video -->
                     <div class="card o-hidden border-0 shadow-lg my-5">
-                        <div class="section-header">Imagenes / Video</div>
-                                    <div class="col-6">
-                                            <div class="form-group">
-                                                <label for="{{ form.video.id_for_label }}">Subir video:</label>
-                                                <input type="file" class="form-control-file" name="video" id="{{ form.video.id_for_label }}">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="{{ form.imagenes.id_for_label }}">Subir imágenes:</label>
-                                                <input type="file" class="form-control-file" name="imagenes" id="{{ form.imagenes.id_for_label }}" multiple>
-                                            </div>
-                                        </div>
-                                </div>
+    <div class="section-header">
+        <i class="fas fa-camera mr-2"></i>Imágenes y Video
+    </div>
+    <div class="card-body p-4">
+        
+        <!-- 🔥 SUBIDA DE IMÁGENES MEJORADA -->
+        <div class="row">
+            <div class="col-lg-8">
+                <h5 class="mb-3">
+                    <i class="fas fa-images text-primary mr-2"></i>
+                    Imágenes de la propiedad
+                </h5>
+                
+                <div class="upload-section" id="imageUploadZone">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h4 class="text-primary mb-2">Arrastra tus imágenes aquí</h4>
+                        <p class="text-muted mb-3">o haz clic para seleccionar archivos</p>
+                        
+                        <input type="file" 
+                               class="d-none" 
+                               name="imagenes" 
+                               id="imagenes" 
+                               multiple 
+                               accept="image/jpeg,image/jpg,image/png,image/webp">
+                        
+                        <button type="button" class="btn btn-primary btn-lg" onclick="document.getElementById('imagenes').click()">
+                            <i class="fas fa-plus mr-2"></i>Seleccionar Imágenes
+                        </button>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Formatos: JPG, PNG, WebP | Máximo: 15 imágenes | Tamaño max: 10MB c/u
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 🔥 PREVIEW DE IMÁGENES SELECCIONADAS -->
+                <div id="imagePreview" class="file-preview" style="display: none;">
+                    <h6><i class="fas fa-eye mr-2"></i>Imágenes seleccionadas:</h6>
+                    <div id="imageList" class="row"></div>
+                    <div class="mt-2">
+                        <small class="text-success">
+                            <i class="fas fa-check-circle mr-1"></i>
+                            <span id="imageCount">0</span> imagen(es) lista(s) para subir
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 🔥 SUBIDA DE VIDEO MEJORADA -->
+            <div class="col-lg-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-video text-danger mr-2"></i>
+                    Video (Opcional)
+                </h5>
+                
+                <div class="video-upload">
+                    <div class="text-center">
+                        <i class="fas fa-video fa-2x text-danger mb-3"></i>
+                        <p class="text-muted mb-3">Sube un video de la propiedad</p>
+                        
+                        <input type="file" 
+                               class="form-control-file d-none" 
+                               name="video" 
+                               id="video" 
+                               accept="video/mp4,video/webm,video/mov,video/avi">
+                        
+                        <button type="button" class="btn btn-outline-danger" onclick="document.getElementById('video').click()">
+                            <i class="fas fa-upload mr-2"></i>Seleccionar Video
+                        </button>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                Formatos: MP4, WebM, MOV<br>
+                                Tamaño máximo: 100MB
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Preview del video -->
+                <div id="videoPreview" style="display: none;" class="mt-3">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-film mr-2"></i>Video seleccionado:</h6>
+                        <p class="mb-1"><strong id="videoFileName"></strong></p>
+                        <small class="text-muted" id="videoFileSize"></small>
+                        <button type="button" class="btn btn-sm btn-outline-danger ml-2" onclick="removeVideo()">
+                            <i class="fas fa-times"></i> Quitar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 🔥 PROGRESS BAR para upload -->
+        <div id="uploadProgress" class="mt-4" style="display: none;">
+            <h6><i class="fas fa-upload mr-2"></i>Preparando archivos...</h6>
+            <div class="progress" style="height: 25px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                     role="progressbar" 
+                     style="width: 0%">
+                    <span class="progress-text">0%</span>
+                </div>
+            </div>
+            <small class="text-muted mt-1">Los archivos se subirán a Cloudinary automáticamente</small>
+        </div>
+
+        <!-- 🔥 CONSEJOS PARA MEJORES FOTOS -->
+        <div class="mt-4">
+            <div class="card bg-light">
+                <div class="card-body py-3">
+                    <h6 class="text-primary mb-2">
+                        <i class="fas fa-lightbulb mr-2"></i>Consejos para mejores fotos
+                    </h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                • Toma fotos con buena iluminación natural<br>
+                                • Incluye exteriores e interiores<br>
+                                • Muestra los espacios principales
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                • Evita objetos personales en las fotos<br>
+                                • Toma fotos horizontales cuando sea posible<br>
+                                • La primera imagen será la principal
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                                 <div class="d-grid gap-2 col-12 mx-auto mt-4">
                                     <button class="btn btn-primary btn-user btn-block" type="submit">Registrar Propiedad</button>
                                 </div>
@@ -366,6 +635,203 @@
             });
         });
     </script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 🔥 ELEMENTOS DEL DOM
+    const imageInput = document.getElementById('imagenes');
+    const videoInput = document.getElementById('video');
+    const imageUploadZone = document.getElementById('imageUploadZone');
+    const imagePreview = document.getElementById('imagePreview');
+    const imageList = document.getElementById('imageList');
+    const videoPreview = document.getElementById('videoPreview');
+    const videoFileName = document.getElementById('videoFileName');
+    const videoFileSize = document.getElementById('videoFileSize');
+    const imageCount = document.getElementById('imageCount');
+    
+    let selectedImages = [];
+    let selectedVideo = null;
+    
+    // 🔥 DRAG & DROP para imágenes
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        imageUploadZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        imageUploadZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        imageUploadZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        imageUploadZone.classList.add('dragover');
+    }
+    
+    function unhighlight() {
+        imageUploadZone.classList.remove('dragover');
+    }
+    
+    imageUploadZone.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleImageFiles(files);
+    }
+    
+    // Click en zona de upload
+    imageUploadZone.addEventListener('click', function(e) {
+        if (e.target === imageUploadZone || e.target.closest('.upload-content')) {
+            imageInput.click();
+        }
+    });
+    
+    // 🔥 MANEJO DE SELECCIÓN DE IMÁGENES
+    imageInput.addEventListener('change', function(e) {
+        handleImageFiles(e.target.files);
+    });
+    
+    function handleImageFiles(files) {
+        // Validar número máximo de archivos
+        if (files.length > 15) {
+            alert('⚠️ Máximo 15 imágenes permitidas. Se seleccionarán las primeras 15.');
+            files = Array.from(files).slice(0, 15);
+        }
+        
+        selectedImages = [];
+        imageList.innerHTML = '';
+        
+        if (files.length === 0) {
+            imagePreview.style.display = 'none';
+            return;
+        }
+        
+        imagePreview.style.display = 'block';
+        
+        Array.from(files).forEach((file, index) => {
+            if (!file.type.startsWith('image/')) {
+                console.warn(`Archivo ${file.name} no es una imagen válida`);
+                return;
+            }
+            
+            // Validar tamaño
+            if (file.size > 10 * 1024 * 1024) { // 10MB
+                alert(`⚠️ La imagen "${file.name}" es muy grande. Máximo 10MB por imagen.`);
+                return;
+            }
+            
+            selectedImages.push(file);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-md-6 col-lg-4 mb-2';
+                
+                colDiv.innerHTML = `
+                    <div class="preview-item d-flex align-items-center">
+                        <img src="${e.target.result}" alt="Preview">
+                        <div class="flex-grow-1">
+                            <div class="text-truncate" style="max-width: 150px;">
+                                <strong>${file.name}</strong>
+                            </div>
+                            <small class="text-muted">${formatFileSize(file.size)}</small>
+                            ${index === 0 ? '<br><small class="text-primary"><i class="fas fa-star"></i> Imagen principal</small>' : ''}
+                        </div>
+                        <div class="text-success ml-2">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                `;
+                imageList.appendChild(colDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Actualizar contador
+        imageCount.textContent = selectedImages.length;
+        
+        // Actualizar el input file con los archivos seleccionados
+        const dt = new DataTransfer();
+        selectedImages.forEach(file => dt.items.add(file));
+        imageInput.files = dt.files;
+    }
+    
+    // 🔥 MANEJO DE VIDEO
+    videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar tamaño
+            if (file.size > 100 * 1024 * 1024) { // 100MB
+                alert('⚠️ El video es muy grande. Máximo 100MB.');
+                this.value = '';
+                videoPreview.style.display = 'none';
+                selectedVideo = null;
+                return;
+            }
+            
+            selectedVideo = file;
+            videoFileName.textContent = file.name;
+            videoFileSize.textContent = formatFileSize(file.size);
+            videoPreview.style.display = 'block';
+        } else {
+            videoPreview.style.display = 'none';
+            selectedVideo = null;
+        }
+    });
+    
+    // 🔥 QUITAR VIDEO
+    window.removeVideo = function() {
+        videoInput.value = '';
+        videoPreview.style.display = 'none';
+        selectedVideo = null;
+    };
+    
+    // 🔥 FORMATO DE TAMAÑO DE ARCHIVO
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // 🔥 VALIDACIÓN AL ENVIAR EL FORMULARIO
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const progressContainer = document.getElementById('uploadProgress');
+            const progressBar = progressContainer.querySelector('.progress-bar');
+            const progressText = progressContainer.querySelector('.progress-text');
+            
+            // Mostrar progress bar
+            progressContainer.style.display = 'block';
+            imageUploadZone.classList.add('processing');
+            
+            // Simular progreso
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 95) progress = 95;
+                
+                progressBar.style.width = progress + '%';
+                progressText.textContent = Math.round(progress) + '%';
+                
+                if (progress >= 95) {
+                    clearInterval(interval);
+                    progressText.textContent = 'Finalizando...';
+                }
+            }, 200);
+        });
+    }
+});
+</script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('propietario_search');

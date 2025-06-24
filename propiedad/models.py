@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from login.models import corredor
+import cloudinary.uploader
+from cloudinary.models import CloudinaryField
 
 
 class OpcionOtros(models.Model):
@@ -28,7 +30,7 @@ class Propiedad(models.Model):
     descripcion = models.CharField(max_length=255) #
     posee_casa = models.BooleanField(null=True, blank=True) 
     numero_lote = models.CharField(max_length=45, null=True, blank=True) #
-    video = models.FileField(upload_to='video/', null=True, blank=True)
+    video = CloudinaryField('video', null=True, blank=True, resource_type='video')
     superficie_terreno = models.CharField(max_length=255, null=True, blank=True)
     superficie_construida = models.CharField(max_length=255, null=True, blank=True)
     anio_construccion = models.CharField(max_length=255, null=True, blank=True)
@@ -58,18 +60,54 @@ class Propiedad(models.Model):
         return f"{self.titulo} - {self.calle} {self.numero_calle}"
 
     def delete(self, *args, **kwargs):
+        # Eliminar imágenes de Cloudinary
         for imagen in self.imagenes.all():
-            imagen.imagen.delete()
+            if imagen.cloudinary_public_id:
+                try:
+                    cloudinary.uploader.destroy(imagen.cloudinary_public_id)
+                except:
+                    pass  # Si falla, continuar
             imagen.delete()
+        
+        # Eliminar video de Cloudinary
+        if self.video and hasattr(self.video, 'public_id'):
+            try:
+                cloudinary.uploader.destroy(self.video.public_id, resource_type='video')
+            except:
+                pass
+        
         super().delete(*args, **kwargs)
 
 class ImagenPropiedad(models.Model):
     propiedad = models.ForeignKey(Propiedad, related_name='imagenes', on_delete=models.CASCADE)
-    imagen = models.ImageField(upload_to='imagen/', null=True, blank=True)
+    
+    # 🔥 CAMBIO: Usar CloudinaryField en lugar de ImageField
+    imagen = CloudinaryField('imagen', null=True, blank=True)
+    
+    # Campo opcional para guardar el public_id de Cloudinary
+    cloudinary_public_id = models.CharField(max_length=255, null=True, blank=True)
+    
+    # Campo opcional para guardar info adicional
+    orden = models.PositiveIntegerField(default=0)  # Para ordenar imágenes
+    es_portada = models.BooleanField(default=False)  # Marcar imagen principal
 
     class Meta:
         db_table = 'imagen_propiedad'
+        ordering = ['orden']
 
+    def save(self, *args, **kwargs):
+        # Guardar el public_id si está disponible
+        if self.imagen and hasattr(self.imagen, 'public_id'):
+            self.cloudinary_public_id = self.imagen.public_id
+        super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        # Eliminar imagen de Cloudinary
+        if self.cloudinary_public_id:
+            try:
+                cloudinary.uploader.destroy(self.cloudinary_public_id)
+            except:
+                pass  # Si falla, continuar
+        super().delete(*args, **kwargs)
 
         

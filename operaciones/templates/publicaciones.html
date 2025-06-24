@@ -59,7 +59,7 @@
             {% for publicacion in publicaciones_destacadas %}
             <div class="col-lg-3 col-md-3 col-sm-4 mb-4 d-flex align-items-stretch">
                 <div class="card shadow-sm w-100">
-                    <img src="{{ publicacion.imagen_url }}" alt="{{ publicacion.titulo }}" class="img-fluid card-img-top" style="height: 200px; object-fit: cover;">
+                    <img src="{{ publicacion.imagen_url }}" alt="{{ publicacion.titulo }}" class="img-fluid card-img-top property-card-image">
                     <div class="card-body p-2">
                         <h6 class="card-title font-weight-bold text-truncate">{{publicacion.tipo_publicacion }}: {{ publicacion.titulo }}</h6>
                         <span class="card-text text-muted small text-truncate">{{ publicacion.id_propiedad.calle }}, {{ publicacion.id_propiedad.comuna }}</>
@@ -133,6 +133,16 @@
         color: #fff !important;
         font-weight: bold !important;
     }
+
+    /* Estilos para las imágenes de las tarjetas de propiedades */
+    .property-card-image {
+        height: 200px;
+        width: 100%;
+        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
+        border-radius: 5px 5px 0 0;
+    }
+
     /* Estilos para el carrusel a pantalla completa */
     #carouselOpciones {
         width: 100%;
@@ -146,9 +156,10 @@
     }
     
     .carousel-item img {
-        object-fit: cover;
+        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
         width: 100%;
         height: 100%;
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
     }
     
     /* Estilo para centrar contenido del carrusel */

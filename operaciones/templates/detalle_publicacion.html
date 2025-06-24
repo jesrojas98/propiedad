@@ -183,8 +183,9 @@
     .main-image {
         width: 100%;
         height: 430px;
-        object-fit: cover;
+        object-fit: contain; /* La imagen se ajusta al contenedor sin cortarse */
         border-radius: 5px;
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
     }
 
     /* Controles del carrusel debajo de la imagen */
@@ -210,6 +211,21 @@
     .card-body li {
         list-style: none;
         padding: 5px 0;
+    }
+
+    /* Estilos adicionales para el video */
+    .video-player {
+        object-fit: contain; /* El video también se ajusta al contenedor */
+        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
+    }
+
+    /* Asegurar que el contenedor del carrusel mantenga su tamaño */
+    .carousel-inner {
+        height: 430px; /* Altura fija para el contenedor */
+    }
+
+    .carousel-item {
+        height: 100%; /* Los items ocupan toda la altura del contenedor */
     }
 </style>
 {% endblock %}

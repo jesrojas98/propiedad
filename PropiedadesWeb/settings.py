@@ -11,29 +11,30 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
+import dj_database_url
 from pathlib import Path
+from decouple import config
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-lf6yr#1d_vcys0(bi9^iyo$*d&5y%4bic+)!osp0xgrk!b6r1i'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-lf6yr#1d_vcys0(bi9^iyo$*d&5y%4bic+)!osp0xgrk!b6r1i')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '*.railway.app',
+    '.railway.app',
+]
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -51,10 +52,12 @@ INSTALLED_APPS = [
     'operaciones.apps.OperacionesConfig',
     'documentos.apps.DocumentosConfig',
     'comisiones.apps.ComisionesConfig',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Para archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -83,21 +86,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'PropiedadesWeb.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
+# Base de datos local para desarrollo
+DATABASES_LOCAL = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'PropiedadesWebDB',
         'USER': 'root',
         'PASSWORD': 'admin',
-        'HOST': 'localhost',  # O la dirección IP de tu servidor MySQL
-        'PORT': '3306',  # El puerto por defecto de MySQL
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
+# Base de datos para producción (Railway)
+DATABASES = {
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL', default='mysql://root:admin@localhost:3306/PropiedadesWebDB')
+    )
+}
+
+# Si no hay DATABASE_URL (desarrollo local), usar MySQL
+if not config('DATABASE_URL', default=None):
+    DATABASES = DATABASES_LOCAL
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -117,33 +130,63 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'es-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Configuración para WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'godoykepcl@gmail.com'
-EMAIL_HOST_PASSWORD = 'ypdn xupf pllz abrd'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='godoykepcl@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='ypdn xupf pllz abrd')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Cloudinary configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default='dtfogmeqk'),
+    'API_KEY': config('CLOUDINARY_API_KEY', default='489165292886497'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET', default='tVkFlEkQG1WQUACrMDNIrVBw30Q'),
+}
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    secure=True
+)
+
+# Security settings for production
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_REDIRECT_EXEMPT = []
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

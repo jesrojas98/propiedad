@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load cloudinary %}
 
 {% block content %}
 <style>
@@ -18,6 +19,71 @@
     .card {
         border: none;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 🔥 ESTILOS MEJORADOS PARA GALERÍA DE IMÁGENES */
+    .imagen-item {
+        position: relative;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+    }
+    .imagen-item:hover {
+        transform: translateY(-2px);
+    }
+    .imagen-item img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .imagen-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .imagen-item:hover .imagen-overlay {
+        opacity: 1;
+    }
+    .btn-eliminar-imagen {
+        background: rgba(220, 53, 69, 0.9);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+    }
+    .btn-eliminar-imagen:hover {
+        background: rgba(220, 53, 69, 1);
+        color: white;
+    }
+    .dropzone {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        transition: border-color 0.3s ease;
+        background: #f8f9fa;
+    }
+    .dropzone:hover {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    .dropzone.dragover {
+        border-color: #28a745;
+        background: #e8f5e8;
     }
 </style>
 
@@ -87,7 +153,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="{{ form.codigo_propiedad.id_for_label }}"{% if propiedad.codigo_propiedad == "codigo_propiedad" %}selected{% endif %}>Codigo de propiedad</label>
+                                        <label for="{{ form.codigo_propiedad.id_for_label }}">Codigo de propiedad</label>
                                         {{ form.codigo_propiedad|add_class:"form-control" }}
                                     </div>
                                 </div>
@@ -95,245 +161,427 @@
                         </div>
                     </div>
 
-<!-- Sección Ubicación -->
-<div class="card o-hidden border-0 shadow-lg my-5">
-    <div class="section-header">Ubicación</div>
-    <div class="card-body p-4">
-        <div class="row">
-            <div class="col-md-6">
-                <label>Región*</label>
-                <select name="region" id="region" class="custom-select">
-                    <option value="" {% if not region_seleccionada %}selected{% endif %}>Seleccione una opción</option>
-                    {% for region in regiones %}
-                        <option value="{{ region }}" {% if region == region_seleccionada %}selected{% endif %}>
-                            {{ region }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label>Comuna*</label>
-                {{ form.comuna|add_class:"form-control" }}
-            </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-md-4">
-                <label>Calle*</label>
-                {{ form.calle|add_class:"form-control" }}
-            </div>
-            <div class="col-md-4">
-                <label>Número Calle*</label>
-                {{ form.numero_calle|add_class:"form-control" }}
-            </div>
-            {% if propiedad.tipo_propiedad == "Casa" or propiedad.tipo_propiedad == "Departamento" or propiedad.tipo_propiedad == "Oficina" %}
-            <div class="col-md-4">
-                <label>Número Casa</label>
-                {{ form.numero_casa|add_class:"form-control" }}
-            </div>
-            {% endif %}	
-        </div>
-    </div>
-</div>
-
-<!-- Sección Información adicional -->
-<div class="card o-hidden border-0 shadow-lg my-5">
-    <div class="section-header">Información adicional</div>
-    <div class="card-body p-4">
-        <div class="row">
-            <div class="col-md-4">
-                <label>Superficie construida (m²)*</label>
-                {{ form.superficie_construida|add_class:"form-control" }}
-            </div>
-            <div class="col-md-4">
-                <label>Superficie terreno (m²)</label>
-                {{ form.superficie_terreno|add_class:"form-control" }}
-            </div>
-            <div class="col-md-4">
-                <label>Año de Construcción</label>
-                {{ form.anio_construccion|add_class:"form-control" }}
-            </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-md-4">
-                <label>Gastos comunes</label>
-                {{ form.gastos_comunes|add_class:"form-control" }}
-            </div>
-            <div class="col-md-4">
-                <label>Dormitorios*</label>
-                <select name="dormitorios" id="dormitorios" class="custom-select">
-                    <option value="">Seleccione una opción</option>
-                    {% for i in range_15 %}
-                        <option value="{{ i }}" {% if dormitorios_seleccionado and i == dormitorios_seleccionado %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-md-4">
-                <label>Baños*</label>
-                <select name="banios" id="banios" class="custom-select">
-                    <option value="">Seleccione una opción</option>
-                    {% for i in range_15 %}
-                        <option value="{{ i }}" {% if banios_seleccionado and i == banios_seleccionado %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        
-        </div>
-        <div class="row mt-3">
-            <div class="col-md-4">
-                <label>Estacionamientos</label>
-                <select name="estacionamiento" id="estacionamiento" class="custom-select">
-                    <option value="">Seleccione una opción</option>
-                    {% for i in range_15 %}
-                        <option value="{{ i }}" {% if estacionamiento_seleccionado and i == estacionamiento_seleccionado %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-md-4">
-                <label>Bodegas</label>
-                <select name="bodegas" id="bodegas" class="custom-select">
-                    <option value="">Seleccione una opción</option>
-                    {% for i in range_15 %}
-                        <option value="{{ i }}" {% if bodegas_seleccionado and i == bodegas_seleccionado %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-md-4">
-                <label>Pisos</label>
-                <select name="pisos" id="pisos" class="custom-select">
-                    <option value="">Seleccione una opción</option>
-                    {% for i in range_3 %}
-                        <option value="{{ i }}" {% if pisos_seleccionado and i == pisos_seleccionado %}selected{% endif %}>{{ i }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            {% if propiedad.tipo_propiedad == "Parcela" or propiedad.tipo_propiedad == "Terreno" %}
-            <div class="col-md-3">
-                <label for="id_factibilidad_agua">Factibilidad Agua*</label>
-                <select name="factibilidad_agua" id="id_factibilidad_agua" class="custom-select">
-                    <option value="">-------</option>
-                    {% for choice in form.factibilidad_agua.field.choices %}
-                        <option value="{{ choice.0 }}" {% if form.factibilidad_agua.value == choice.0 %}selected{% endif %}>
-                            {{ choice.1 }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="id_factibilidad_electricidad">Factibilidad Electricidad*</label>
-                <select name="factibilidad_electricidad" id="id_factibilidad_electricidad" class="custom-select">
-                    <option value="">-------</option>
-                    {% for choice in form.factibilidad_electricidad.field.choices %}
-                        <option value="{{ choice.0 }}" {% if form.factibilidad_electricidad.value == choice.0 %}selected{% endif %}>
-                            {{ choice.1 }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="id_factibilidad_alcantarillado">Factibilidad Alcantarillado*</label>
-            <select name="factibilidad_alcantarillado" id="id_factibilidad_alcantarillado" class="custom-select">
-                <option value="">-------</option>
-                {% for choice in form.factibilidad_alcantarillado.field.choices %}
-                    <option value="{{ choice.0 }}" {% if form.factibilidad_alcantarillado.value == choice.0 %}selected{% endif %}>
-                        {{ choice.1 }}
-                    </option>
-                {% endfor %}
-            </select>
-            </div>
-            <div class="col-md-3">
-                <label for="id_factibilidad_gas">Factibilidad Gas*</label>
-                <select name="factibilidad_gas" id="id_factibilidad_gas" class="custom-select">
-                    <option value="">-------</option>
-                    {% for choice in form.factibilidad_gas.field.choices %}
-                        <option value="{{ choice.0 }}" {% if form.factibilidad_gas.value == choice.0 %}selected{% endif %}>
-                            {{ choice.1 }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-
-        </div>
-    </div>
-    
-</div>
-
- {% if propiedad.tipo_propiedad != "Terreno" and propiedad.tipo_propiedad != "Parcela" %}
-                    <!-- Sección Otros -->
-<div class="card o-hidden border-0 shadow-lg my-5">
-<div class="section-header">Otros</div>
-<div class="card-body p-4">
-<div class="row">
-{% for opcion in form.otros.field.queryset %}
-<div class="col-md-3">
-<div class="form-check">
-<input class="form-check-input" type="checkbox" name="otros" value="{{ opcion.id }}" id="otros_{{ opcion.id }}"
-{% if opcion in propiedad.otros.all %}checked{% endif %}>
-<label class="form-check-label" for="otros_{{ opcion.id }}">{{ opcion.nombre }}</label>
-</div>
-</div>
-{% endfor %}
-</div>
-</div>
-                    </div>
-{% endif %}
-
-
-<!-- Sección Imágenes y Video -->
-<div class="card o-hidden border-0 shadow-lg my-5">
-    <div class="section-header">Imágenes / Video</div>
-    <div class="card-body p-4">
-        <div class="row">
-            {% for imagen in propiedad.imagenes.all %}
-                <div class="col-md-4 text-center">
-                    <!-- Imagen con modal -->
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalImagen{{ imagen.id }}">
-                        <img src="{{ imagen.imagen.url }}" class="img-fluid rounded shadow" style="cursor: pointer; width: 200px; height: 200px; object-fit: cover;">
-                    </a>
-
-                    <!-- Modal de imagen (Grande) -->
-                    <div class="modal fade" id="modalImagen{{ imagen.id }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Vista previa</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <!-- Sección Ubicación -->
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">Ubicación</div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Región*</label>
+                                    <select name="region" id="region" class="custom-select">
+                                        <option value="" {% if not region_seleccionada %}selected{% endif %}>Seleccione una opción</option>
+                                        {% for region in regiones %}
+                                            <option value="{{ region }}" {% if region == region_seleccionada %}selected{% endif %}>
+                                                {{ region }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
-                                <div class="modal-body text-center">
-                                    <img src="{{ imagen.imagen.url }}" class="img-fluid rounded shadow" style="max-width: 100%; height: auto;">
+                                <div class="col-md-6">
+                                    <label>Comuna*</label>
+                                    {{ form.comuna|add_class:"form-control" }}
                                 </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Calle*</label>
+                                    {{ form.calle|add_class:"form-control" }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Número Calle*</label>
+                                    {{ form.numero_calle|add_class:"form-control" }}
+                                </div>
+                                {% if propiedad.tipo_propiedad == "Casa" or propiedad.tipo_propiedad == "Departamento" or propiedad.tipo_propiedad == "Oficina" %}
+                                <div class="col-md-4">
+                                    <label>Número Casa</label>
+                                    {{ form.numero_casa|add_class:"form-control" }}
+                                </div>
+                                {% endif %}	
                             </div>
                         </div>
                     </div>
 
-                    <!-- Botón de eliminar debajo de la imagen -->
-                    <button type="submit" name="eliminar_imagen" value="{{ imagen.id }}" class="btn btn-danger btn-sm mt-2 w-100">Eliminar</button>
-                </div>
-            {% empty %}
-                <p class="text-muted">No hay imágenes disponibles.</p>
-            {% endfor %}
-        </div>
+                    <!-- Sección Información adicional -->
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">Información adicional</div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label>Superficie construida (m²)*</label>
+                                    {{ form.superficie_construida|add_class:"form-control" }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Superficie terreno (m²)</label>
+                                    {{ form.superficie_terreno|add_class:"form-control" }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Año de Construcción</label>
+                                    {{ form.anio_construccion|add_class:"form-control" }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Gastos comunes</label>
+                                    {{ form.gastos_comunes|add_class:"form-control" }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Dormitorios*</label>
+                                    <select name="dormitorios" id="dormitorios" class="custom-select">
+                                        <option value="">Seleccione una opción</option>
+                                        {% for i in range_15 %}
+                                            <option value="{{ i }}" {% if dormitorios_seleccionado and i == dormitorios_seleccionado %}selected{% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label>Baños*</label>
+                                    <select name="banios" id="banios" class="custom-select">
+                                        <option value="">Seleccione una opción</option>
+                                        {% for i in range_15 %}
+                                            <option value="{{ i }}" {% if banios_seleccionado and i == banios_seleccionado %}selected{% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    <label>Estacionamientos</label>
+                                    <select name="estacionamiento" id="estacionamiento" class="custom-select">
+                                        <option value="">Seleccione una opción</option>
+                                        {% for i in range_15 %}
+                                            <option value="{{ i }}" {% if estacionamiento_seleccionado and i == estacionamiento_seleccionado %}selected{% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label>Bodegas</label>
+                                    <select name="bodegas" id="bodegas" class="custom-select">
+                                        <option value="">Seleccione una opción</option>
+                                        {% for i in range_15 %}
+                                            <option value="{{ i }}" {% if bodegas_seleccionado and i == bodegas_seleccionado %}selected{% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label>Pisos</label>
+                                    <select name="pisos" id="pisos" class="custom-select">
+                                        <option value="">Seleccione una opción</option>
+                                        {% for i in range_3 %}
+                                            <option value="{{ i }}" {% if pisos_seleccionado and i == pisos_seleccionado %}selected{% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
 
-        <label class="mt-3">Subir nuevas imágenes:</label>
-        <input type="file" class="form-control-file" name="imagenes" multiple>
+                                {% if propiedad.tipo_propiedad == "Parcela" or propiedad.tipo_propiedad == "Terreno" %}
+                                <div class="col-md-3">
+                                    <label for="id_factibilidad_agua">Factibilidad Agua*</label>
+                                    <select name="factibilidad_agua" id="id_factibilidad_agua" class="custom-select">
+                                        <option value="">-------</option>
+                                        {% for choice in form.factibilidad_agua.field.choices %}
+                                            <option value="{{ choice.0 }}" {% if form.factibilidad_agua.value == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="id_factibilidad_electricidad">Factibilidad Electricidad*</label>
+                                    <select name="factibilidad_electricidad" id="id_factibilidad_electricidad" class="custom-select">
+                                        <option value="">-------</option>
+                                        {% for choice in form.factibilidad_electricidad.field.choices %}
+                                            <option value="{{ choice.0 }}" {% if form.factibilidad_electricidad.value == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="id_factibilidad_alcantarillado">Factibilidad Alcantarillado*</label>
+                                <select name="factibilidad_alcantarillado" id="id_factibilidad_alcantarillado" class="custom-select">
+                                    <option value="">-------</option>
+                                    {% for choice in form.factibilidad_alcantarillado.field.choices %}
+                                        <option value="{{ choice.0 }}" {% if form.factibilidad_alcantarillado.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="id_factibilidad_gas">Factibilidad Gas*</label>
+                                    <select name="factibilidad_gas" id="id_factibilidad_gas" class="custom-select">
+                                        <option value="">-------</option>
+                                        {% for choice in form.factibilidad_gas.field.choices %}
+                                            <option value="{{ choice.0 }}" {% if form.factibilidad_gas.value == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
 
-        <label class="mt-3">Subir nuevo video:</label>
-        <input type="file" class="form-control-file" name="video">
-    </div>
-</div>
+                    {% if propiedad.tipo_propiedad != "Terreno" and propiedad.tipo_propiedad != "Parcela" %}
+                    <!-- Sección Otros -->
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">Otros</div>
+                        <div class="card-body p-4">
+                            <div class="row">
+                                {% for opcion in form.otros.field.queryset %}
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="otros" value="{{ opcion.id }}" id="otros_{{ opcion.id }}"
+                                        {% if opcion in propiedad.otros.all %}checked{% endif %}>
+                                        <label class="form-check-label" for="otros_{{ opcion.id }}">{{ opcion.nombre }}</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
 
+                    <!-- 🔥 SECCIÓN MEJORADA: Imágenes y Video -->
+                    <div class="card o-hidden border-0 shadow-lg my-5">
+                        <div class="section-header">
+                            <i class="fas fa-images mr-2"></i>Imágenes / Video
+                        </div>
+                        <div class="card-body p-4">
+                            
+                            <!-- 🔥 GALERÍA DE IMÁGENES EXISTENTES MEJORADA -->
+                            {% if propiedad.imagenes.exists %}
+                            <h5 class="mb-3">
+                                <i class="fas fa-photo-video text-primary mr-2"></i>
+                                Imágenes actuales ({{ propiedad.imagenes.count }})
+                            </h5>
+                            <div class="row" id="galeria-imagenes">
+                                {% for imagen in propiedad.imagenes.all %}
+                                <div class="col-lg-3 col-md-4 col-sm-6 mb-3" id="imagen-{{ imagen.id }}">
+                                    <div class="imagen-item">
+                                        <!-- 🔥 Imagen optimizada con Cloudinary -->
+                                        <img src="{% imagen_listado imagen %}" 
+                                             alt="Imagen {{ forloop.counter }}" 
+                                             onclick="mostrarImagenCompleta('{% imagen_detalle imagen %}', '{{ imagen.id }}')">
+                                        
+                                        <!-- 🔥 Overlay con botón de eliminar -->
+                                        <div class="imagen-overlay">
+                                            <button type="button" 
+                                                    class="btn btn-eliminar-imagen"
+                                                    onclick="eliminarImagen({{ imagen.id }})">
+                                                <i class="fas fa-trash mr-1"></i>Eliminar
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Indicador de imagen principal -->
+                                        {% if forloop.first %}
+                                        <div class="badge badge-primary" style="position: absolute; top: 10px; left: 10px;">
+                                            <i class="fas fa-star mr-1"></i>Principal
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <hr class="my-4">
+                            {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Esta propiedad no tiene imágenes aún. Puedes subir algunas abajo.
+                            </div>
+                            {% endif %}
 
+                            <!-- 🔥 SUBIR NUEVAS IMÁGENES - MEJORADO -->
+                            <h5 class="mb-3">
+                                <i class="fas fa-cloud-upload-alt text-success mr-2"></i>
+                                Subir nuevas imágenes
+                            </h5>
+                            <div class="dropzone" id="dropzone">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <p class="mb-2">Arrastra las imágenes aquí o haz clic para seleccionar</p>
+                                <p class="text-muted small">Formatos soportados: JPG, PNG, WebP | Máximo 15 imágenes</p>
+                                <input type="file" 
+                                       class="form-control-file d-none" 
+                                       name="imagenes" 
+                                       id="imagenes" 
+                                       multiple 
+                                       accept="image/*">
+                                <button type="button" class="btn btn-outline-primary mt-2" onclick="document.getElementById('imagenes').click()">
+                                    <i class="fas fa-plus mr-2"></i>Seleccionar imágenes
+                                </button>
+                            </div>
+                            
+                            <!-- Preview de imágenes seleccionadas -->
+                            <div id="preview-nuevas-imagenes" class="row mt-3" style="display: none;"></div>
+
+                            <!-- 🔥 VIDEO SECTION -->
+                            <hr class="my-4">
+                            <h5 class="mb-3">
+                                <i class="fas fa-video text-info mr-2"></i>
+                                Video de la propiedad
+                            </h5>
+                            
+                            {% if propiedad.video %}
+                            <div class="current-video mb-3">
+                                <h6>Video actual:</h6>
+                                <video class="w-100 rounded shadow" style="max-height: 300px;" controls>
+                                    <source src="{% video_url propiedad.video %}" type="video/mp4">
+                                    Tu navegador no soporta la etiqueta de video.
+                                </video>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="form-group">
+                                <label for="{{ form.video.id_for_label }}">
+                                    {% if propiedad.video %}Cambiar video:{% else %}Subir video:{% endif %}
+                                </label>
+                                <input type="file" 
+                                       class="form-control-file" 
+                                       name="video" 
+                                       id="{{ form.video.id_for_label }}"
+                                       accept="video/*">
+                                <small class="form-text text-muted">
+                                    Formatos soportados: MP4, WebM, AVI | Tamaño máximo: 100MB
+                                </small>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="d-grid gap-2 col-12 mx-auto mt-4">
-                        <button class="btn btn-success btn-user btn-block" type="submit">Guardar Cambios</button>
+                        <button class="btn btn-success btn-user btn-block" type="submit">
+                            <i class="fas fa-save mr-2"></i>Guardar Cambios
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- 🔥 MODAL PARA VER IMAGEN COMPLETA -->
+    <div class="modal fade" id="modalImagenCompleta" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Vista Completa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-0">
+                    <img id="imagenModalCompleta" src="" class="img-fluid" style="max-height: 80vh;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 🔥 JAVASCRIPT MEJORADO PARA MANEJO DE IMÁGENES
+    
+    // Mostrar imagen completa en modal
+    function mostrarImagenCompleta(imageUrl, imagenId) {
+        document.getElementById('imagenModalCompleta').src = imageUrl;
+        new bootstrap.Modal(document.getElementById('modalImagenCompleta')).show();
+    }
+    
+    // Eliminar imagen con confirmación
+    function eliminarImagen(imagenId) {
+        if (confirm('¿Estás seguro de que quieres eliminar esta imagen?')) {
+            // Crear formulario dinámico para eliminar
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.innerHTML = `
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" name="eliminar_imagen" value="${imagenId}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    
+    // 🔥 DRAG & DROP para imágenes
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('imagenes');
+        const previewContainer = document.getElementById('preview-nuevas-imagenes');
+        
+        // Prevenir comportamiento por defecto
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Destacar zona de drop
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            dropzone.classList.add('dragover');
+        }
+        
+        function unhighlight(e) {
+            dropzone.classList.remove('dragover');
+        }
+        
+        // Manejar drop
+        dropzone.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            handleFiles(files);
+        }
+        
+        // Manejar selección de archivos
+        fileInput.addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            previewContainer.innerHTML = '';
+            if (files.length > 0) {
+                previewContainer.style.display = 'flex';
+                
+                Array.from(files).forEach((file, index) => {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const col = document.createElement('div');
+                            col.className = 'col-lg-2 col-md-3 col-sm-4 col-6 mb-2';
+                            col.innerHTML = `
+                                <div class="card">
+                                    <img src="${e.target.result}" class="card-img-top" style="height: 100px; object-fit: cover;">
+                                    <div class="card-body p-1">
+                                        <small class="text-muted">${file.name}</small>
+                                    </div>
+                                </div>
+                            `;
+                            previewContainer.appendChild(col);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        }
+        
+        // Click en dropzone abre selector de archivos
+        dropzone.addEventListener('click', function() {
+            fileInput.click();
+        });
+    });
+    </script>
 </body>
 {% endblock %}
