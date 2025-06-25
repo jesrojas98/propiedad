@@ -51,11 +51,17 @@
                             <td>
                                 {% if propiedad.imagenes.exists %}
                                     {% with primera_imagen=propiedad.imagenes.first %}
-                                        {% cloudinary primera_imagen.imagen width=50 height=50 crop="fill" class="img-thumbnail preview-img cursor-pointer" %}
+                                        <img src="{{ primera_imagen.imagen.url }}" 
+                                             class="img-thumbnail preview-img cursor-pointer" 
+                                             data-imagen-original="{{ primera_imagen.imagen.url }}"
+                                             alt="Vista previa de {{ propiedad.titulo }}"
+                                             width="50" height="50"
+                                             style="object-fit: cover;">
                                     {% endwith %}
                                 {% else %}
                                     <img src="https://via.placeholder.com/50x50/cccccc/666666?text=Sin+Foto" 
-                                         class="img-thumbnail property-thumbnail" width="50" height="50">
+                                         class="img-thumbnail property-thumbnail" width="50" height="50"
+                                         alt="Sin imagen disponible">
                                 {% endif %}
                             </td>
                             <td>{{ propiedad.titulo|truncatechars:15 }}</td>
@@ -88,14 +94,19 @@
 
 <!-- Modal para visualizar imagen en grande -->
 <div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="imagenModalLabel">Vista Previa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <h5 class="modal-title" id="imagenModalLabel">Vista Previa de Imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar" id="botonCerrarModal"></button>
             </div>
-            <div class="modal-body text-center">
-                <img id="imagenAmpliada" src="" class="img-fluid rounded shadow modal-image" loading="lazy">
+            <div class="modal-body text-center p-0">
+                <div class="image-container">
+                    <img id="imagenAmpliada" src="" class="img-fluid modal-image" loading="lazy" alt="Imagen ampliada">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="botonCerrarModalFooter">Cerrar</button>
             </div>
         </div>
     </div>
@@ -111,37 +122,64 @@
         margin: 0 1px;
     }
     
-    /* Estilos para las imágenes thumbnail - ajustadas al contenedor */
+    /* Estilos para las imágenes thumbnail */
     .img-thumbnail {
         border-radius: 5px;
         cursor: pointer;
-        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
-        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
-        transition: transform 0.2s ease;
+        object-fit: cover;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         width: 50px;
         height: 50px;
+        border: 2px solid #dee2e6;
     }
     
     .img-thumbnail:hover {
-        transform: scale(1.05);
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        border-color: #007bff;
     }
     
     .cursor-pointer {
         cursor: pointer;
     }
     
-    /* Estilos para la imagen en el modal - también ajustada */
+    /* Estilos para el modal */
+    .modal-xl {
+        max-width: 90%;
+    }
+    
+    .image-container {
+        background-color: #f8f9fa;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
     .modal-image {
         max-width: 100%;
-        max-height: 70vh; /* Limitar altura del modal */
-        object-fit: contain; /* La imagen se ajusta sin cortarse */
-        background-color: #f8f9fa; /* Color de fondo consistente */
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
     /* Asegurar que las imágenes placeholder también se ajusten */
     .property-thumbnail {
-        object-fit: contain;
+        object-fit: cover;
         background-color: #f8f9fa;
+    }
+    
+    /* Botón de cerrar mejorado */
+    .btn-close {
+        font-size: 1.2rem;
+        padding: 0.5rem;
+    }
+    
+    .btn-close:hover {
+        background-color: rgba(255, 0, 0, 0.1);
+        border-radius: 50%;
     }
     
     /* Responsive para botones en móviles */
@@ -152,6 +190,14 @@
         .btn-group .btn {
             margin: 1px 0;
             font-size: 0.8rem;
+        }
+        
+        .modal-xl {
+            max-width: 95%;
+        }
+        
+        .modal-image {
+            max-height: 70vh;
         }
     }
 </style>
@@ -204,19 +250,71 @@ document.addEventListener("DOMContentLoaded", function() {
     filtroCodigo.addEventListener("input", aplicarFiltros);
     
     // Funcionalidad del modal para las imágenes
+    let modalInstance = null;
+    
     document.querySelectorAll('.preview-img').forEach(img => {
         img.addEventListener('click', function() {
-            // Obtener la URL de la imagen desde Cloudinary
-            const imageUrl = this.src;
-            // Crear una versión de mayor resolución para el modal
-            const highResUrl = imageUrl.replace(/w_50,h_50/, 'w_800,h_600');
+            console.log('Imagen clickeada'); // Debug
             
-            document.getElementById('imagenAmpliada').setAttribute('src', highResUrl);
+            // Obtener la URL original de la imagen
+            let imageUrl = this.getAttribute('data-imagen-original') || this.src;
+            
+            // Para Cloudinary, crear una versión de mayor resolución
+            if (imageUrl.includes('cloudinary.com')) {
+                // Si la URL ya tiene transformaciones, las reemplazamos
+                if (imageUrl.includes('/upload/')) {
+                    imageUrl = imageUrl.replace(/\/upload\/[^\/]*\//, '/upload/w_1200,h_900,c_fit/');
+                }
+            }
+            
+            console.log('URL de imagen para modal:', imageUrl); // Debug
+            
+            // Establecer la imagen en el modal
+            const imagenAmpliada = document.getElementById('imagenAmpliada');
+            imagenAmpliada.src = imageUrl;
             
             // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('imagenModal'));
-            modal.show();
+            const modalElement = document.getElementById('imagenModal');
+            modalInstance = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+            modalInstance.show();
         });
+    });
+    
+    // Funcionalidad adicional para cerrar el modal
+    function cerrarModal() {
+        if (modalInstance) {
+            modalInstance.hide();
+            modalInstance = null;
+        }
+    }
+    
+    // Event listeners para los botones de cerrar
+    document.getElementById('botonCerrarModal').addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Botón cerrar clickeado'); // Debug
+        cerrarModal();
+    });
+    
+    document.getElementById('botonCerrarModalFooter').addEventListener('click', function(e) {
+        e.preventDefault();
+        cerrarModal();
+    });
+    
+    // Cerrar modal con la tecla ESC
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modalInstance) {
+            cerrarModal();
+        }
+    });
+    
+    // Limpiar la instancia del modal cuando se cierre
+    document.getElementById('imagenModal').addEventListener('hidden.bs.modal', function () {
+        modalInstance = null;
+        document.getElementById('imagenAmpliada').src = '';
     });
 });
 </script>

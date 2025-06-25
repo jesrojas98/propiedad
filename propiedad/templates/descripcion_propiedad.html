@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block content %}
@@ -86,21 +85,39 @@
                 <!-- Columna para el carrusel de imágenes -->
                 <div class="col-md-6 text-center position-relative">
                     {% if propiedad.imagenes.all %}
-                        <div id="carouselImagenes" class="carousel slide h-100" data-bs-ride="carousel">
-                            <div class="carousel-inner h-100">
+                        <div id="carouselImagenes" class="carousel slide" data-bs-interval="false">
+                            <div class="carousel-inner">
                                 {% for imagen in propiedad.imagenes.all %}
-                                    <div class="carousel-item {% if forloop.first %}active{% endif %} h-100">
-                                        <img src="{{ imagen.imagen.url }}" class="d-block propiedad-imagen mx-auto" alt="Imagen de la propiedad">
+                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                        <div class="carousel-image-container">
+                                            <img src="{{ imagen.imagen.url }}" class="d-block w-100 propiedad-imagen" alt="Imagen de la propiedad">
+                                        </div>
                                     </div>
                                 {% endfor %}
                             </div>
-                            <!-- Flechas de navegación minimalistas -->
-                            <button class="carousel-control-prev custom-arrow" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
-                                <span class="custom-arrow-icon">◄</span>
-                            </button>
-                            <button class="carousel-control-next custom-arrow" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
-                                <span class="custom-arrow-icon">►</span>
-                            </button>
+                            
+                            <!-- Indicadores del carrusel -->
+                            {% if propiedad.imagenes.all|length > 1 %}
+                                <div class="carousel-indicators">
+                                    {% for imagen in propiedad.imagenes.all %}
+                                        <button type="button" data-bs-target="#carouselImagenes" data-bs-slide-to="{{ forloop.counter0 }}" 
+                                                {% if forloop.first %}class="active" aria-current="true"{% endif %} 
+                                                aria-label="Slide {{ forloop.counter }}"></button>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Controles de navegación -->
+                            {% if propiedad.imagenes.all|length > 1 %}
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselImagenes" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carouselImagenes" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            {% endif %}
                         </div>
                     {% else %}
                         <p class="text-center">No hay fotos disponibles.</p>
@@ -119,6 +136,7 @@
                     {% endif %}
                 </div>
             </div>
+            <br>
             <div class="d-grid gap-2 col-6 mx-auto mt-4">
             <a href="{% url 'propiedad:modificar_propiedad' propiedad.id %}" class="btn btn-info col-md-12">Modificar</a>
             <a href="{% url 'propiedad:mostrar_propiedad' %}" class="btn btn-primary col-md-12">Volver</a>
@@ -131,16 +149,13 @@
 
     </div>
 
-
-
 <!-- Estilos personalizados -->
 <style>
-
-
     .descripcion-textarea {
         height: 100px !important;
         resize: none;
     }
+    
     .section-header {
         background: linear-gradient(to right, #ff5733, #ff8c00);
         color: white;
@@ -148,6 +163,7 @@
         border-radius: 5px 5px 0 0;
         font-weight: bold;
     }
+    
     .card {
         border: none;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
@@ -157,67 +173,95 @@
         background-color: white;
     }
 
-    .propiedad-imagen {
-        width: 100%;
-        gap: 10px;
+    /* Contenedor del carrusel */
+    .carousel-image-container {
         height: 800px;
-        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
-        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .propiedad-imagen {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
         border-radius: 10px;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     .propiedad-video {
         height: 800px;
-        object-fit: contain; /* Cambiado de 'cover' a 'contain' */
-        background-color: #f8f9fa; /* Color de fondo para espacios vacíos */
+        object-fit: contain;
+        background-color: #f8f9fa;
     }
 
-    /* Asegurar que el contenedor del carrusel mantenga su altura */
-    .carousel-inner {
-        height: 800px; /* Altura fija para el contenedor */
+    /* Personalización de controles del carrusel */
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 5%;
+        opacity: 0.8;
     }
 
-    .carousel-item {
-        height: 100%; /* Los items ocupan toda la altura del contenedor */
-        display: flex;
-        align-items: center; /* Centrar verticalmente */
-        justify-content: center; /* Centrar horizontalmente */
-    }
-
-    /* Estilos de las flechas discretas */
-    .custom-arrow {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        font-size: 2rem;
-        font-weight: bold;
-        color: white;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
-        z-index: 5; /* Asegurar que estén por encima */
-    }
-
-    .custom-arrow:hover {
+    .carousel-control-prev:hover,
+    .carousel-control-next:hover {
         opacity: 1;
     }
 
-    .carousel-control-prev {
-        left: 10px;
-    }
-
-    .carousel-control-next {
-        right: 10px;
-    }
-
-    .custom-arrow-icon {
-        background: rgba(0, 0, 0, 0.5);
-        padding: 10px 15px;
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-color: rgba(0, 0, 0, 0.6);
         border-radius: 50%;
-        color: white;
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* Personalización de indicadores */
+    .carousel-indicators {
+        bottom: -50px;
+    }
+
+    .carousel-indicators [data-bs-target] {
+        background-color: #ff5733;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin: 0 5px;
+    }
+
+    /* Asegurar que el carrusel funcione correctamente */
+    .carousel-item {
+        transition: transform 0.6s ease-in-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .carousel-image-container {
+            height: 400px;
+        }
+        
+        .propiedad-video {
+            height: 400px;
+        }
     }
 </style>
+
+<!-- Script para controlar el carrusel manualmente -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var carouselElement = document.querySelector('#carouselImagenes');
+    if (carouselElement && typeof bootstrap !== 'undefined') {
+        var carousel = new bootstrap.Carousel(carouselElement, {
+            interval: false, // Desactivar completamente el auto-play
+            wrap: true       // Permitir ciclo infinito
+        });
+        
+        // Asegurar que no se mueva automáticamente
+        carousel.pause();
+    }
+});
+</script>
 
 {% endblock %}
